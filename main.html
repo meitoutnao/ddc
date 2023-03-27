@@ -1,0 +1,622 @@
+﻿<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN"
+	"http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head><meta http-equiv="content-type" content="text/html; charset=UTF-8"/><meta name="generator" content="ABBYY FineReader 11"/><meta name="author" content="崔靖骋"/><meta name="keywords" content="研究目的，研究方法，创新性成果，独特见解 "/><title>main</title><link rel="stylesheet" href="main.css" type="text/css"/>
+</head>
+<body style="background-color:#FFFFFF;">
+<p><span class="font6">第2章数字下变频器总体设计</span></p><a name="caption1"></a><h3 style="text-align:center;padding:0pt 0pt 27pt 0pt;"><a name="bookmark0"></a><span class="font10">第2章数字下变频器总体设计</span></h3>
+<p style="text-align:justify;text-indent:26pt;padding:27pt 0pt 27pt 0pt;"><a name="bookmark1"></a><span class="font6">数字下变频器的设计需要综合考虑多个因素，如电路结构、信号处理算法以 及模块间的协调等方面。本章将主要介绍数字下变频器的总体设计方案，包括顶&nbsp;层设计、变频模块设计、滤波模块设计以及增益补偿模块设计，为使用该设计的&nbsp;用户介绍其基本的功能性能，和使用该变频器时不同的工作模式与配置。本章为&nbsp;最终的设计成果，具体的设计思路与参数考量将在后续的仿真章节进行详细介绍。</span></p><h4 style="padding:27pt 0pt 21pt 0pt;"><a name="bookmark2"></a><span class="font9"><a name="bookmark3"></a>2.1数字下变频器顶层设计</span></h4>
+<p style="text-align:justify;text-indent:38pt;padding:21pt 0pt 21pt 0pt;"><a name="bookmark4"></a><span class="font6">数字下变频模块（</span><span class="font17">DDC</span><span class="font6">)总体包含变频模块（</span><span class="font17">FTS</span><span class="font6">)，滤波模块（</span><span class="font17">FS</span><span class="font6">)，增益 补偿模块（</span><span class="font17">GS</span><span class="font6">)和控制寄存器堆，如图<a href="#bookmark4">2-1</a>所示。</span><span class="font17">DDC</span><span class="font6">可以接收来自</span><span class="font17">ADC</span><span class="font6">的实数&nbsp;或复数中频信号</span><span class="font6" style="color:#C6C6C6;">，</span><span class="font6">输出位宽相同的基频信号，并保证信号的主要信息完整，降低信&nbsp;号速率的同时维持信号的</span><span class="font17">SNDR</span><span class="font6">性能。下面介绍有关</span><span class="font17">DDC</span><span class="font6">的顶层设计。</span></p>
+<table>
+<tr><td><img src="main-1.jpg" style="width:425pt;height:169pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">图</span><span class="font17">2-1 DDC</span><span class="font6">总体结构</span></p></td></tr>
+</table>
+<p style="padding:35pt 191pt 17pt 38pt;"><a name="bookmark5"></a><span class="font6">2.1.1整体功能与接口 按照处理顺序，</span><span class="font17">DDC</span><span class="font6">的整体功能如下：</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:17pt 0pt 0pt 0pt;"><span class="font6">(1) </span><span class="font17" style="font-weight:bold;">DDC</span><span class="font6">输入</span><span class="font17">DDC</span><span class="font6">接收来自</span><span class="font17">ADC</span><span class="font6">的信号，其输入共有两个信号传输通道:&nbsp;当输入信号为复数时，通道一传输14位实部信号，通道二传输14位虚部信号；当&nbsp;输入信号为实数时，通道一与通道二均传输相同的14位实数信号</span></p>
+<p style="text-indent:26pt;padding:0pt 0pt 39pt 0pt;"><span class="font6">(3) </span><span class="font17" style="font-weight:bold;">FTS</span><span class="font6">处理</span><span class="font17">FTS</span><span class="font6">接收来自输入端的两路信号，混合</span><span class="font17">NCO</span><span class="font6">输出的两路12位 信号，将信号频谱由中频搬移至基频处。最后输出两路18位复数信号。</span></p>
+<p style="text-indent:26pt;padding:39pt 0pt 39pt 0pt;"><span class="font6">(2) &nbsp;&nbsp;&nbsp;</span><span class="font17" style="font-weight:bold;">FS</span><span class="font6">处理</span><span class="font17">FS</span><span class="font6">接收来自</span><span class="font17">FTS</span><span class="font6">的两路复数信号，通过配置的工作模式进行滤&nbsp;波和抽取，滤除信号的杂波并降低信号速率。最后输出两路18位复数信号</span></p>
+<p style="text-indent:26pt;padding:39pt 0pt 23pt 0pt;"><span class="font6">(3) &nbsp;&nbsp;&nbsp;</span><span class="font17" style="font-weight:bold;">GS</span><span class="font6">处理</span><span class="font17">GS</span><span class="font6">接收来自</span><span class="font17">FS</span><span class="font6">的两路复数信号，对信号进行补偿与截位。最&nbsp;后输出两路14位复数信号，完成</span><span class="font17">DDC</span><span class="font6">的输出。</span></p><h5 style="text-indent:26pt;padding:23pt 0pt 23pt 0pt;"><a name="bookmark6"></a><span class="font6">2.1.2控制寄存器堆</span><span class="font8" style="font-weight:bold;">（</span><span class="font17" style="font-weight:bold;">Control</span><span class="font6"> </span><span class="font17" style="font-weight:bold;">Register</span><span class="font6">)</span></h5>
+<p style="text-indent:38pt;padding:23pt 0pt 27pt 0pt;"><a name="bookmark7"></a><span class="font6">系统通过</span><span class="font17">SPI</span><span class="font6">协议与数字下变频模块通信，通过对相关控制寄存器的读写 完成对数字下变频模块的配置。表<a href="#bookmark7">2-1</a>介绍了具体的控制寄存器功能。</span></p>
+<table>
+<tr><td>
+<p><span class="font6">表</span><span class="font17">2-1</span><span class="font6">控制寄存器功能</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td>
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">寄存器名</span></p></td><td>
+<p><span class="font6">位宽</span></p></td><td>
+<p style="text-align:center;"><span class="font6">位名</span></p></td><td>
+<p><span class="font6">功能</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font17">CRFTS</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 15pt;"><span class="font6">8</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font17">RST</span><span class="font6">(</span><span class="font17">CRFTS</span><span class="font6">[7])</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 3pt 0pt;"><span class="font17">RST</span><span class="font6">上升沿时对</span><span class="font17">NCO</span><span class="font6">复位，</span></p>
+<p style="padding:3pt 0pt 0pt 0pt;"><span class="font6">更新输出输出正/余弦函数的参数</span></p></td></tr>
+<tr><td>
+<p style="padding:0pt 0pt 0pt 8pt;"></p></td><td>
+<p></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font17">RCM</span><span class="font6">(</span><span class="font17">CRFTS</span><span class="font6">[2])</span></p></td><td>
+<p><span class="font6">1： </span><span class="font17">FTS</span><span class="font6">米用实数信号输入操作；</span></p>
+<p><span class="font6">0： </span><span class="font17">FTS</span><span class="font6">采用复数信号输入操作；</span></p></td></tr>
+<tr><td>
+<p style="padding:0pt 0pt 0pt 8pt;"></p></td><td>
+<p></p></td><td style="vertical-align:middle;">
+<p><span class="font17">OWM</span><span class="font6">(</span><span class="font17">CRFTS</span><span class="font6">[5:4])</span></p></td><td>
+<p><span class="font6">00: </span><span class="font17">FTS</span><span class="font6">中</span><span class="font17">NCO</span><span class="font6">模块采用零频率模式；</span></p>
+<p><span class="font6">01: </span><span class="font17">NCO</span><span class="font6">采用1/4频率模式；</span></p>
+<p><span class="font6">10: </span><span class="font17">NCO</span><span class="font6">采用可变频率模式</span></p></td></tr>
+<tr><td>
+<p style="padding:0pt 0pt 0pt 8pt;"></p></td><td>
+<p></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font17">RCM</span><span class="font6">(</span><span class="font17">CRFTS</span><span class="font6">[6])</span></p></td><td>
+<p><span class="font6">1: </span><span class="font17">INPUT</span><span class="font6">不含有效信号；</span></p>
+<p><span class="font6">0： </span><span class="font17">INPUT</span><span class="font6">包含有效信号；</span></p>
+<p><span class="font6">(见后2.2.4)</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">FTW</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 15pt;"><span class="font6">12</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font17">FTW</span><span class="font6">[11:0]</span></p></td><td>
+<p><span class="font6">设置</span><span class="font17">NCO</span><span class="font6">模块输出波形的频率 (二进制补码）</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">POW</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 15pt;"><span class="font6">12</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font17">POW</span><span class="font6">[11:0]</span></p></td><td>
+<p><span class="font6">设置</span><span class="font17">NCO</span><span class="font6">模块输出波形的初始相位 (二进制补码）</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font17">CRFGS</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 15pt;"><span class="font6">8</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font17">FM</span><span class="font6">(</span><span class="font17">CRFGS</span><span class="font6">[7:5])</span></p></td><td>
+<p><span class="font6">000:</span><span class="font17">FS</span><span class="font6">模块仅使能</span><span class="font17">HB</span><span class="font6">1;</span></p>
+<p><span class="font6">001:</span><span class="font17">FS</span><span class="font6">模块仅使能</span><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2;</span></p>
+<p><span class="font6">010</span><span class="font17">:FS</span><span class="font6"> 模块仅使能 </span><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2,</span><span class="font17">HB</span><span class="font6">3;</span></p>
+<p><span class="font6">011</span><span class="font17">:FS</span><span class="font6"> 模块使能 </span><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2,</span><span class="font17">HB</span><span class="font6">3,</span><span class="font17">HB</span><span class="font6">4; 100</span><span class="font17">:FS</span><span class="font6"> 模块使能 </span><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2,</span><span class="font17">HB</span><span class="font6">3,</span><span class="font17">HB</span><span class="font6">4,</span><span class="font17">HB</span><span class="font6">5</span></p></td></tr>
+<tr><td>
+<p style="padding:0pt 0pt 0pt 8pt;"></p></td><td>
+<p></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font17">GS</span><span class="font6">(</span><span class="font17">CRFGS</span><span class="font6">[3])</span></p></td><td>
+<p><span class="font6">0:</span><span class="font17">GS</span><span class="font6">采用0</span><span class="font17">dB</span><span class="font6">补偿；</span></p>
+<p><span class="font6">1:</span><span class="font17">GS</span><span class="font6">采用6</span><span class="font17">dB</span><span class="font6">补偿；</span></p></td></tr>
+</table></td></tr>
+</table>
+<p style="padding:0pt 0pt 42pt 25pt;"><span class="font17" style="font-weight:bold;">2.1.3</span><span class="font6">正弦波输入实例</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:42pt 0pt 0pt 0pt;"><a name="bookmark8"></a><span class="font6">下面通过简单的实数中频正弦波输入的实例说明各模块的输出，并展示 </span><span class="font17">SNDR</span><span class="font6">性能的变化。该实例</span><span class="font17">NCO</span><span class="font6">模块使用可变频率模式，</span><span class="font17">FS</span><span class="font6">模块五个半带滤波&nbsp;抽取均使能。各模块的信号由</span><span class="font17">MATLAB</span><span class="font6">计算</span><span class="font17">FFT</span><span class="font6">与</span><span class="font17">SNDR</span><span class="font6"> (第二章中进行介绍），&nbsp;并绘制出频谱如图<a href="#bookmark8">2-2</a>.</span></p><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td><img src="main-2.jpg" style="width:427pt;height:336pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">(</span><span class="font17">c</span><span class="font6">)</span><span class="font17">FS</span><span class="font6">输出</span></p>
+<p style="text-align:center;padding:0pt 5pt 10pt 0pt;"><span class="font12" style="color:#383838;">f (MHz)</span></p>
+<p style="padding:10pt 0pt 0pt 0pt;"><span class="font6">(</span><span class="font17">d</span><span class="font6">)</span><span class="font17">DDC</span><span class="font6">输出</span></p>
+<p><span class="font6">图</span><span class="font17">2-2</span><span class="font6">各模块信号频谱</span></p></td></tr>
+</table></div><br clear="all"/><h4 style="padding:0pt 0pt 29pt 0pt;"><a name="bookmark9"></a><span class="font9"><a name="bookmark10"></a><a name="bookmark11"></a>2.2变频模块设计方案</span></h4>
+<table>
+<tr><td><img src="main-3.jpg" style="width:340pt;height:260pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">图</span><span class="font17">2-3 FTS</span><span class="font6">总体结构</span></p></td></tr>
+</table>
+<p style="text-align:justify;text-indent:38pt;padding:29pt 0pt 20pt 0pt;"><a name="bookmark12"></a><span class="font6">如图<a href="#bookmark10">2-3</span><span class="font17"></a>,FTS</span><span class="font6">包含有</span><span class="font17">NCO</span><span class="font6">模块和</span><span class="font17">MIXER</span><span class="font6">模块，它可以接受</span><span class="font17">ADC</span><span class="font6">输出的中 频信号，并通过混频将其搬移至基频附近后输出，搬移后可能存在多余的高频杂&nbsp;波和相应的幅度损失，交由后续模块进行处理。</span><span class="font17">FTS</span><span class="font6">模块支持实数与复数有符号&nbsp;信号的输入，并由相关控制器配置不同的模式。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:20pt 0pt 20pt 0pt;"><span class="font6">2.2.1数控振荡器（</span><span class="font17" style="font-weight:bold;">NCO</span><span class="font6">)设计</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:20pt 0pt 20pt 0pt;"><span class="font17">FTS</span><span class="font6">模块混频使用的中频正/余弦信号由</span><span class="font17">NCO</span><span class="font6">产生。</span><span class="font17">NCO</span><span class="font6">可以根据控制寄 存器配置三种不同的工作模式（控制寄存器</span><span class="font17">CRFTS</span><span class="font6">的</span><span class="font17">OWM</span><span class="font6">[1:0]位控制），如下:</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:20pt 0pt 0pt 0pt;"><span class="font6">(1)可变频率模式：该模式下</span><span class="font17">NCO</span><span class="font6">可以产生频率可调节的中频信号，具体频 率由输入信号的载波频率决定，该信号由12位的</span><span class="font17">FTW</span><span class="font6">与</span><span class="font17">POW</span><span class="font6">配置，精度固定。</span></p>
+<p style="text-align:justify;text-indent:25pt;"><span class="font17">FTW</span><span class="font6">与</span><span class="font17">POW</span><span class="font6">通过查找表的方式实现对该信号的配置。查找表储存频率为 </span><span class="font17">fs</span><span class="font6">/(2</span><span class="font17"><sup>12</sup>)Hz</span><span class="font6">初始相位为0的正弦与余弦信号。</span><span class="font17">FTW</span><span class="font6">与</span><span class="font17">POW</span><span class="font6">控制</span><span class="font17">NCO</span><span class="font6">寻址查找表&nbsp;以控制频率和相位。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:0pt 0pt 20pt 0pt;"><span class="font17">FTW</span><span class="font6">为12位频率调节控制字，计算方式如下：</span></p>
+<p style="text-align:justify;padding:20pt 0pt 0pt 117pt;"><span class="font18" style="font-style:italic;">FTW</span><span class="font6" style="font-style:italic;"> = </span><span class="font18" style="font-style:italic;">Round</span><span class="font6" style="font-style:italic;">(2<sup>12</sup> • </span><span class="font18" style="font-style:italic;">Mod</span><span class="font6" style="font-style:italic;">(</span><span class="font18" style="font-style:italic;">fc</span><span class="font6" style="font-style:italic;">, </span><span class="font18" style="font-style:italic;">fs</span><span class="font6" style="font-style:italic;">)/</span><span class="font18" style="font-style:italic;">fs</span><span class="font6" style="font-style:italic;">)</span><span class="font6"> &nbsp;&nbsp;&nbsp;(2.1)</span></p>
+<p style="text-align:justify;text-indent:25pt;"><span class="font6">其中</span><span class="font17">fs</span><span class="font6">是米样频率</span><span class="font7">，</span><span class="font17">fc</span><span class="font6">是输入信号载波频率</span><span class="font7">，</span><span class="font17">Round</span><span class="font6">是四舍五入运算</span><span class="font7">，</span><span class="font17">Mod</span><span class="font6">是 求余运算。当</span><span class="font17">FTW</span><span class="font6">为0</span><span class="font17">x</span><span class="font6">800就代表输出频率为-</span><span class="font17">fs</span><span class="font6">/2; 0</span><span class="font17">x</span><span class="font6">000就代表了 </span><span class="font17">fc</span><span class="font6">是0</span><span class="font7">。</span><span class="font17">FTW&nbsp;</span><span class="font6">可以控制</span><span class="font17">NCO</span><span class="font6">产生频率从-</span><span class="font17">fs</span><span class="font6">/2到</span><span class="font17">fs</span><span class="font6">/2 (不包含</span><span class="font17">fs</span><span class="font6">/2)的正/余弦信号。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:0pt 0pt 30pt 0pt;"><span class="font17">POW</span><span class="font6">是相位偏移控制字，计算方式如下：</span></p>
+<p style="text-align:justify;padding:30pt 0pt 30pt 121pt;"><span class="font16" style="font-style:italic;">POW</span><span class="font6" style="font-style:italic;"> = </span><span class="font16" style="font-style:italic;">Round</span><span class="font6" style="font-style:italic;">(2<sup>12</sup> - </span><span class="font16" style="font-style:italic;">Mod</span><span class="font6" style="font-style:italic;">(^, 2</span><span class="font16" style="font-style:italic;">n</span><span class="font6" style="font-style:italic;">)/^)</span><span class="font6"> &nbsp;&nbsp;&nbsp;(2.2)</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:30pt 0pt 0pt 0pt;"><span class="font6">其中^为初始相位值。当</span><span class="font17">POW</span><span class="font6">为0</span><span class="font17">x</span><span class="font6">800就代表初始相位为一</span><span class="font17">n</span><span class="font6">/2; 0</span><span class="font17">x</span><span class="font6">000就 代表了初始相位是0。</span><span class="font17">POW</span><span class="font6">控制</span><span class="font17">NCO</span><span class="font6">产生初始相位从一</span><span class="font17">n</span><span class="font6">/2到</span><span class="font17">n</span><span class="font6">/2 (不包含</span><span class="font17">n</span><span class="font6">/2)&nbsp;的正/余弦信号。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:0pt 0pt 30pt 0pt;"><span class="font17">POW</span><span class="font6">与</span><span class="font17">FTW</span><span class="font6"> —同决定查找表的寻址地址，地址运算方式为：</span></p>
+<p style="text-align:justify;padding:30pt 0pt 30pt 136pt;"><a name="bookmark13"></a><span class="font16" style="font-style:italic;">ADDR</span><span class="font6" style="font-style:italic;"> = </span><span class="font16" style="font-style:italic;">FTW</span><span class="font6" style="font-style:italic;"> - </span><span class="font16" style="font-style:italic;">T</span><span class="font18" style="font-style:italic;"><sub>ctk</span><span class="font6"></sub> + </span><span class="font16" style="font-style:italic;">POW</span><span class="font6"> &nbsp;&nbsp;&nbsp;(2.3)</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:30pt 0pt 30pt 0pt;"><span class="font16" style="font-style:italic;">T</span><span class="font18" style="font-style:italic;"><sub>clk</span><span class="font6"></sub>为复位后系统时钟周期数。</span><span class="font17">ADDR</span><span class="font6">为对应的地址，通过该地址寻址查找表 即可输出对应频率的正/余弦信号</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:30pt 0pt 30pt 0pt;"><span class="font6">(2) 零频率模式：该模式下</span><span class="font17">NCO</span><span class="font6">与</span><span class="font17">MIXER</span><span class="font6">将被绕过，一般在输入载波频率&nbsp;为0</span><span class="font17">Hz</span><span class="font6">时使用该模式。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:30pt 0pt 30pt 0pt;"><span class="font6">(3) 1/4频率模式：该模式下</span><span class="font17">NCO</span><span class="font6">固定产生</span><span class="font17">fs</span><span class="font6">/4</span><span class="font17">Hz</span><span class="font6">的中频信号。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:30pt 0pt 22pt 0pt;"><span class="font6">2.2.2混频器（</span><span class="font17">MIXER</span><span class="font6">)设计</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:22pt 0pt 0pt 0pt;"><span class="font6">混频器混合</span><span class="font17">ADC</span><span class="font6">输入的信号与</span><span class="font17">NCO</span><span class="font6">输出的信号，以达到消除</span><span class="font17">ADC</span><span class="font6">输入信 号载波的目的。混频器根据控制寄存器决定进行实数信号输入混频或复数信号输&nbsp;入混频，且当</span><span class="font17">NCO</span><span class="font6">处于零频率模式时直接输出接收到的</span><span class="font17">ADC</span><span class="font6">输入信号。对于实&nbsp;数信号与复数信号输入，混频器将采用不同的混频操作。</span></p>
+<p style="text-align:justify;text-indent:25pt;"><span class="font6">对于实数信号输入，混频器仅接受来自</span><span class="font17">ADC</span><span class="font6">的一路实数信号进行两次乘法操 作输出频谱搬移后的复数信号，操作如图<a href="#bookmark14">2-4</span><span class="font17">a</span><span class="font6"></a>。对于复数信号输入，混频器同时接&nbsp;受来自</span><span class="font17">ADC</span><span class="font6">的实部信号与虚部信号进行四次乘法操作与加减操作后输出，操作如&nbsp;图<a href="#bookmark14">2-4</span><span class="font17">b</span><span class="font6"></a>。控制寄存器（</span><span class="font17">CRFTS</span><span class="font6">的</span><span class="font17">RCM</span><span class="font6">与</span><span class="font17">OWM</span><span class="font6">[1:0]位控制）根据具体的</span><span class="font17">ADC</span><span class="font6">输&nbsp;入决定最后混频器输出的结果，见图<a href="#bookmark14">2-4</a>。</span></p><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td><img src="main-4.jpg" style="width:212pt;height:156pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">(</span><span class="font17">b</span><span class="font6">)复数信号输入操作</span></p></td></tr>
+</table></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;"><a name="caption2"></a><h1><a name="bookmark15"></a><span class="font9" style="color:#0A1741;">&lt;</span><span class="font19" style="color:#0A1741;">g</span><span class="font9" style="color:#0A1741;">)</span></h1></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td>
+<table border="1">
+<tr><td>
+<p></p></td><td>
+<p></p></td><td>
+<p></p></td><td style="vertical-align:bottom;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font14" style="color:#2B2B2B;">COS</span></p></td></tr>
+<tr><td rowspan="2" style="vertical-align:bottom;">
+<p><a name="bookmark14"></a><span class="font15">ADC</span></p></td><td style="vertical-align:bottom;">
+<p><span class="font14" style="color:#2B2B2B;">REAL</span></p></td><td>
+<p></p></td><td rowspan="2" style="vertical-align:bottom;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font15">NCO</span></p></td></tr>
+<tr><td>
+<p></p></td><td>
+<p></p></td></tr>
+<tr><td>
+<p></p></td><td>
+<p></p></td><td>
+<p></p></td><td>
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font14" style="color:#2B2B2B;">SIN</span></p></td></tr>
+</table></td><td>
+<p><span class="font14" style="color:#2B2B2B;">COMPLEX</span></p></td></tr>
+</table></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;"><h2><a name="bookmark16"></a><span class="font9" style="color:#0A1741;">&lt;8^</span></h2></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">(</span><span class="font17">a</span><span class="font6">)实数信号输入操作</span></p></div><br clear="all"/>
+<p style="text-align:center;padding:0pt 1pt 34pt 0pt;"><span class="font6">图</span><span class="font17">2-4</span><span class="font6">混频器操作</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:34pt 0pt 19pt 0pt;"><span class="font17" style="font-weight:bold;">2.2.3</span><span class="font6">混频器的信号衰减与溢出</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:19pt 0pt 0pt 0pt;"><span class="font6">当混频器对实数信号混频搬移后，将会引入一个6</span><span class="font17">dB</span><span class="font6">的幅度衰减，这是由 于在混频后，实数信号的负频谱（实数信号在正负频域包含一对共轭的频谱）经&nbsp;过搬移后在后被滤除。为了保证最终的信号不会浪费输出的位宽，在后面将引入&nbsp;一个增益补偿（</span><span class="font17">GS</span><span class="font6">)模块。具体见后</span><span class="font17">GS</span><span class="font6">模块设计方案</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:0pt 0pt 19pt 0pt;"><span class="font6">而当混频器对复数信号混频搬移时，其输出信号的最大理论值可能达到位宽 量程的1.414倍（输入信号的实部虚部均达到位宽量程的最值时，</span><span class="font17">NCO</span><span class="font6">输出信号&nbsp;相位为士&quot;4)，此时会发生溢出，影响数据的截位。为避免这种溢出，在复数信&nbsp;号混频时引入一个3.06</span><span class="font17">dB</span><span class="font6">的衰减（相当于信号的值衰减0.707),引入衰减后</span><span class="font17">FTS&nbsp;</span><span class="font6">最终输出信号的值不会发生溢出且没有浪费输出位宽。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:19pt 0pt 19pt 0pt;"><span class="font17" style="font-weight:bold;">2.2.4</span><span class="font6">模块接口与时序</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:19pt 0pt 19pt 0pt;"><span class="font6">模块接口宽度决定了 </span><span class="font17">FTS</span><span class="font6">的量化精度。</span><span class="font17">FTS</span><span class="font6">接收</span><span class="font17">ADC</span><span class="font6">输入的有符号14位 实数信号或28位复数信号（实部虚部各14位)；</span><span class="font17">NCO</span><span class="font6">输出有符号24位复数信号&nbsp;(实部虚部各12位)；</span><span class="font17">FTS</span><span class="font6">最终输出36位复数信号（实部虚部各18位)。</span><span class="font17">FTS</span><span class="font6">模块&nbsp;的各接口宽度固定，对于宽度较小的信号进行有符号位数扩展；由于</span><span class="font17">MIXER</span><span class="font6">模块&nbsp;最终输出信号的宽度小于运算后的实际位宽，将对其进行截位处理，保留需要的&nbsp;有效数据。</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:19pt 0pt 0pt 0pt;"><span class="font17">FTS</span><span class="font6">模块的时序如图<a href="#bookmark17">2-11</a>所示，下面进行介绍：</span></p>
+<p style="text-align:justify;text-indent:26pt;"><span class="font6">(1)在复位前，系统会通过</span><span class="font17">SPI</span><span class="font6">总线按照先</span><span class="font17">POW</span><span class="font6">后</span><span class="font17">FTW</span><span class="font6">的顺序更新两个控 制寄存器</span></p>
+<p style="text-align:justify;text-indent:24pt;"><span class="font6">(2) 上述步骤完成后，</span><span class="font17">NCO</span><span class="font6">会在</span><span class="font17">CRFTS</span><span class="font6">寄存器的</span><span class="font17">RST</span><span class="font6">位上升沿来临时复位，&nbsp;对</span><span class="font17">ADDR</span><span class="font6"> (查找表寻址地址）与</span><span class="font17">NCO_out</span><span class="font6">进行更新</span></p>
+<p style="text-align:justify;text-indent:24pt;padding:0pt 0pt 7pt 0pt;"><span class="font6">(3) &nbsp;&nbsp;&nbsp;</span><span class="font17">FTS</span><span class="font6">还需要接受</span><span class="font17">ADC</span><span class="font6">的输入信号与输入有效信号，当输入有效信号为高&nbsp;电平时</span><span class="font17">FTS</span><span class="font6">延时三个周期后输出有效数据，且</span><span class="font17">FTS</span><span class="font6">的输出准备信号同时拉高表示&nbsp;</span><span class="font17">FTS</span><span class="font6">输出有效。当</span><span class="font17">ADC</span><span class="font6">不含输入有效信号时，需将</span><span class="font17">CRFTS</span><span class="font6">的</span><span class="font17">Bit</span><span class="font6">[6]置1，表示输&nbsp;入有效。</span></p><h3 style="text-align:right;padding:7pt 11pt 0pt 0pt;"><a name="bookmark18"></a><span class="font11" style="color:#4F4F4F;">⑽</span><span class="font11">rLTLrLrLrLrLrLrLrLrLrLTLnLrL</span></h3>
+<p style="text-align:justify;padding:0pt 0pt 7pt 70pt;"><span class="font15" style="color:#4F4F4F;">RST </span><span class="font15">_</span><span class="font16" style="font-style:italic;color:#4F4F4F;">/</span><span class="font16" style="font-style:italic;">~</span><span class="font16" style="font-style:italic;color:#4F4F4F;">\</span><span class="font15">_</span><span class="font15" style="color:#4F4F4F;">.</span><span class="font15" style="text-decoration:underline;color:#4F4F4F;">//</span></p>
+<p style="text-align:justify;padding:7pt 0pt 0pt 18pt;"><span class="font16" style="font-weight:bold;color:#8D8D8D;">'</span><span class="font16" style="font-weight:bold;font-style:italic;color:#8D8D8D;">\</span><span class="font16" style="font-weight:bold;font-variant:small-caps;color:#8D8D8D;"> &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-weight:bold;font-variant:small-caps;color:#4F4F4F;">ftw </span><span class="font21" style="font-style:italic;color:#4F4F4F;">mmrni</span><span class="font16" style="font-weight:bold;font-variant:small-caps;color:#2B2B2B;">^&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-weight:bold;font-variant:small-caps;">update&nbsp;&nbsp;&nbsp;&nbsp;~</span><span class="font1" style="font-style:italic;color:#4F4F4F;">1</span><span class="font16" style="font-weight:bold;font-style:italic;color:#4F4F4F;">(</span></p><div style="display:inline;layout-flow:horizontal;">
+<table border="1">
+<tr><td>
+<p><span class="font15" style="color:#4F4F4F;">POW </span><span class="font15" style="color:#8D8D8D;">«</span></p></td><td>
+<p><span class="font16" style="font-style:italic;color:#686868;">'mmmr</span></p></td><td>
+<p style="text-align:justify;padding:0pt 0pt 0pt 60pt;"><span class="font15">UPDATE &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;color:#4F4F4F;">II</span></p></td></tr>
+<tr><td colspan="3">
+<p></p></td></tr>
+<tr><td style="vertical-align:bottom;">
+<p><span class="font15" style="color:#4F4F4F;">ADDR</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 26pt;"><span class="font15">OLD &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;color:#4F4F4F;">l</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 89pt;"><span class="font15">NEW &nbsp;&nbsp;&nbsp;</span><span class="font18" style="font-style:italic;color:#383838;">II</span></p></td></tr>
+</table></div><br clear="all"/><div style="display:inline;layout-flow:vertical-ideographic;">
+<p><span class="font3" style="color:#4F4F4F;">8N</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td><img src="main-5.jpg" style="width:425pt;height:89pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">图</span><span class="font17">2-5 FTS</span><span class="font6">时序</span></p></td></tr>
+</table></div><br clear="all"/><h4 style="padding:0pt 0pt 40pt 0pt;"><a name="bookmark19"></a><span class="font9"><a name="bookmark20"></a><a name="bookmark21"></a>2.3滤波模块设计方案</span></h4>
+<table>
+<tr><td><img src="main-6.jpg" style="width:425pt;height:239pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">图</span><span class="font17">2-6 FS</span><span class="font6">总体结构</span></p></td></tr>
+</table>
+<p style="text-align:justify;text-indent:38pt;padding:44pt 0pt 5pt 0pt;"><span class="font6">如图<a href="#bookmark20">2-6</span><span class="font17"></a>,FS</span><span class="font6">模块包含五组半带抽取滤波器，每组滤波器中包含一个有限脉 冲响应滤波器（</span><span class="font17">FIR</span><span class="font6">)和一个二倍抽取模块。控制寄存器（</span><span class="font17">CRFGS</span><span class="font6">的</span><span class="font17">FM</span><span class="font6">[2:0]位)&nbsp;控制这五组半带抽取滤波器的使能，除</span><span class="font17">HB</span><span class="font6">1 —直使能外，系统可通过需求决定是&nbsp;否绕过另外四组半带抽取滤波器，对应</span><span class="font17">FS</span><span class="font6">不同的工作模式。</span></p>
+<p style="text-indent:25pt;padding:5pt 0pt 23pt 0pt;"><a name="bookmark22"></a><span class="font17">FS</span><span class="font6">模块接收到来自</span><span class="font17">FTS</span><span class="font6">的基频主信号，通过半带抽取滤波滤除中频多余的信 号，以达到提高基频信号的</span><span class="font17">SNDR</span><span class="font6">性能并降低信号速率的目的。</span></p><h5 style="text-indent:25pt;padding:23pt 0pt 23pt 0pt;"><a name="bookmark23"></a><span class="font6">2.3.1有限脉冲响应(</span><span class="font17" style="font-weight:bold;">FIR</span><span class="font6">)滤波器参数</span></h5>
+<p style="text-align:justify;text-indent:38pt;padding:23pt 0pt 5pt 0pt;"><span class="font6">在半带抽取滤波中使用差分方程实现的有限脉冲响应滤波器，其滤波系数 由查找表储存。输出根据该系数与相关输入由差分方程求得：</span></p>
+<p style="padding:5pt 0pt 5pt 198pt;"><span class="font16" style="font-style:italic;">N</span><span class="font6" style="font-style:italic;">-1</span></p>
+<p style="text-align:justify;padding:5pt 0pt 0pt 172pt;"><span class="font16" style="font-style:italic;">Vi</span><span class="font6"> —</span><span class="font6" style="text-decoration:underline;">〉:</span><span class="font6"> </span><span class="font16" style="font-style:italic;"><sup>C</sup>j</span><span class="font6"> * </span><span class="font16" style="font-style:italic;"><sup>x</sup>i+j</span><span class="font6"> &nbsp;&nbsp;&nbsp;(<sup>2</sup>-<sup>4</sup>)</span></p>
+<p style="padding:0pt 0pt 19pt 198pt;"><span class="font17">j</span><span class="font6">=0</span></p>
+<p style="padding:19pt 0pt 13pt 0pt;"><span class="font6">其中</span><span class="font17">y</span><span class="font6">为输出，</span><span class="font17">x</span><span class="font6">为输入，</span><span class="font17">c</span><span class="font6">为滤波器系数，</span><span class="font17">N</span><span class="font6">是滤波器的阶数</span></p>
+<p style="text-indent:25pt;padding:13pt 0pt 0pt 0pt;"><span class="font6">对于</span><span class="font17">HB</span><span class="font6">1到</span><span class="font17">HB</span><span class="font6">5四组抽取滤波器中的</span><span class="font17">FIR</span><span class="font6">滤波器，其阶数和系数的位宽均有 所区别，下面给出它们具体的参数：</span></p><img src="main-7.jpg" style="width:340pt;height:275pt;"/>
+<table>
+<tr><td>
+<p><span class="font6">表</span><span class="font17">2-2 HB1</span><span class="font6">的系数</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 7pt;"><a name="bookmark24"></a><span class="font17">HB</span><span class="font6">1的滤波器系数</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">归一化系数值</span><span class="font17">C</span><span class="font6">1</span></p></td><td style="vertical-align:middle;">
+<p><span class="font6">十进制系数值(21-</span><span class="font17">Bit</span><span class="font6">)</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">1,</span><span class="font17">C</span><span class="font6">55</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">-1.23977661132813</span><span class="font17">e</span><span class="font6">-05</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-13</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">3,</span><span class="font17">C</span><span class="font6">53</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">5.91278076171875</span><span class="font17">e</span><span class="font6">-05</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">62</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">5,</span><span class="font17">C</span><span class="font6">51</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">-0.000197410583496094</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-207</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">7,</span><span class="font17">C</span><span class="font6">49</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">0.000518798828125000</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">544</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">9,</span><span class="font17">C</span><span class="font6">47</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">-0.00117111206054688</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-1228</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">11,</span><span class="font17">C</span><span class="font6">45</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">0.00237083435058594</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">2486</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">13,</span><span class="font17">C</span><span class="font6">43</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">-0.00441455841064453</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-4629</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">15,</span><span class="font17">C</span><span class="font6">41</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">0.00770473480224609</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">8079</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">17,</span><span class="font17">C</span><span class="font6">39</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">-0.0128126144409180</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-13435</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">19,</span><span class="font17">C</span><span class="font6">37</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 16pt;"><span class="font6">0.0206422805786133</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">21645</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">21,</span><span class="font17">C</span><span class="font6">35</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 10pt;"><span class="font6">-0.0329351425170898</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-34535</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">23,</span><span class="font17">C</span><span class="font6">33</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 16pt;"><span class="font6">0.0540647506713867</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">56691</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">25,</span><span class="font17">C</span><span class="font6">31</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">-0.100069046020508</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-104930</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">27,</span><span class="font17">C</span><span class="font6">29</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0.316250801086426</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">331613</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">28</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0.500000000000000</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">524288</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font6">其他系数</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">0</span></p></td></tr>
+</table></td></tr>
+</table>
+<p style="text-indent:26pt;padding:0pt 0pt 36pt 0pt;"><a name="bookmark25"></a><span class="font6">如图<a href="#bookmark26">2-7</a>与表<a href="#bookmark24">2-2</a>,</span><span class="font17">HB</span><span class="font6">1为55阶滤波器，在任何</span><span class="font17">FS</span><span class="font6">的工作模式下均使能该滤波 器并进行一次二倍抽取。其系数位宽为21位。</span></p><img src="main-8.jpg" style="width:340pt;height:141pt;"/>
+<table>
+<tr><td><img src="main-9.jpg" style="width:265pt;height:85pt;"/></td></tr>
+<tr><td>
+<p style="text-align:justify;"><span class="font15" style="color:#4F4F4F;">0 &nbsp;&nbsp;&nbsp;0.1&nbsp;&nbsp;&nbsp;&nbsp;0.2&nbsp;&nbsp;&nbsp;&nbsp;0.3&nbsp;&nbsp;&nbsp;&nbsp;0.4&nbsp;&nbsp;&nbsp;&nbsp;0.5&nbsp;&nbsp;&nbsp;&nbsp;0.6&nbsp;&nbsp;&nbsp;&nbsp;0.7&nbsp;&nbsp;&nbsp;&nbsp;0.8&nbsp;&nbsp;&nbsp;&nbsp;0.9&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font15" style="color:#383838;">1</span></p>
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font5" style="color:#4F4F4F;">归一化频率</span><span class="font15" style="font-variant:small-caps;color:#383838;">(xttRAD/SAMPLE)</span></p></td></tr>
+</table>
+<p style="text-align:center;padding:13pt 0pt 72pt 0pt;"><span class="font6">图</span><span class="font17">2-8 HB2</span><span class="font6">的频率响应</span></p>
+<table>
+<tr><td>
+<p><span class="font6">表</span><span class="font17">2-3 HB2</span><span class="font6">的系数</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><a name="bookmark27"></a><span class="font17">HB</span><span class="font6">2的滤波器系数</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">归一化系数值</span><span class="font17">C</span><span class="font6">1</span></p></td><td style="vertical-align:middle;">
+<p><span class="font6">十进制系数值(21-</span><span class="font17">Bit</span><span class="font6">)</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">2,</span><span class="font17">C</span><span class="font6">20</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">0.000675201416015625</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">177</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">4,</span><span class="font17">C</span><span class="font6">18</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">-0.00532913208007813</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">-1397</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">6,</span><span class="font17">C</span><span class="font6">16</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 15pt;"><span class="font6">0.0227470397949219</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">5963</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">8,</span><span class="font17">C</span><span class="font6">14</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">-0.0741806030273438</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">-19446</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">10,</span><span class="font17">C</span><span class="font6">12</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0.306091308593750</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">80240</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">11</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0.500000000000000</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">131072</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font6">其他系数</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">0</span></p></td></tr>
+</table></td></tr>
+</table>
+<p style="text-indent:26pt;padding:51pt 0pt 0pt 0pt;"><span class="font6">如图<a href="#bookmark25">2-8</a>与表<a href="#bookmark27">2-3</a>,</span><span class="font17">HB</span><span class="font6">2为21阶滤波器，根据工作模式决定是否使能。其系数位 宽为19位。</span></p><div style="display:inline;layout-flow:horizontal;"><img src="main-10.jpg" style="width:340pt;height:242pt;"/></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;"><img src="main-11.jpg" style="width:263pt;height:208pt;"/></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td>
+<p><span class="font5" style="color:#383838;">归一化频率</span><span class="font15" style="color:#383838;">(x 7T RAD/SAMP LE)</span></p></td></tr>
+<tr><td><img src="main-12.jpg" style="width:340pt;height:12pt;"/></td></tr>
+</table></div><br clear="all"/>
+<p style="text-align:center;padding:0pt 0pt 140pt 0pt;"><span class="font6">图</span><span class="font17">2-9 HB3</span><span class="font6">的频率响应</span></p>
+<p style="text-align:center;padding:140pt 0pt 21pt 0pt;"><span class="font6">表</span><span class="font17">2-4 HB3</span><span class="font6">的系数</span></p>
+<table>
+<tr><td>
+<p><a name="bookmark28"></a><span class="font17">HB</span><span class="font6">3的滤波器系数</span></p>
+<p><span class="font6">十进制系数值(21-</span><span class="font17">Bit</span><span class="font6">)</span></p>
+<p><span class="font6">归一化系数值</span><span class="font17">C</span><span class="font6">1</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">2,</span><span class="font17">C</span><span class="font6">12</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 7pt;"><span class="font6">0.00511932373046875</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">671</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">4,</span><span class="font17">C</span><span class="font6">10</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 7pt;"><span class="font6">-0.0469970703125000</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">-6160</span></p></td></tr>
+<tr><td style="vertical-align:bottom;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">6,</span><span class="font17">C</span><span class="font6">8</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 12pt;"><span class="font6">0.291854858398438</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">38254</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">7</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 12pt;"><span class="font6">0.500000000000000</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">65536</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font6">其他系数</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font6">0</span></p></td></tr>
+</table></td></tr>
+</table>
+<p style="text-indent:23pt;padding:95pt 0pt 0pt 0pt;"><span class="font6">如图<a href="#bookmark29">2-9</a>与表<a href="#bookmark28">2-4</a>,</span><span class="font17">HB</span><span class="font6">3为13阶滤波器，根据工作模式决定是否使能。其系数位 宽为18位。</span></p><img src="main-13.jpg" style="width:340pt;height:276pt;"/>
+<table>
+<tr><td>
+<p><span class="font6">表</span><span class="font17">2-5 HB4,HB5</span><span class="font6">的系数</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 14pt;"><a name="bookmark30"></a><span class="font17">C</span><span class="font6">2,</span><span class="font17">C</span><span class="font6">12</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 7pt;"><span class="font6">0.00387573242187500</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font6">127</span></p></td></tr>
+<tr><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 14pt;"><span class="font17">C</span><span class="font6">4,</span><span class="font17">C</span><span class="font6">10</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 7pt;"><span class="font6">-0.0429077148437500</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">-1406</span></p></td></tr>
+<tr><td style="vertical-align:bottom;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">6,</span><span class="font17">C</span><span class="font6">8</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 12pt;"><span class="font6">0.289031982421875</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">9471</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font17">C</span><span class="font6">7</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 12pt;"><span class="font6">0.500000000000000</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">16384</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">其他系数</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">0</span></p></td></tr>
+</table></td></tr>
+</table>
+<p style="text-indent:26pt;padding:25pt 0pt 20pt 0pt;"><span class="font6">如图<a href="#bookmark31">2-10</a>与表<a href="#bookmark30">2-5</a>,</span><span class="font17">HB</span><span class="font6">4与</span><span class="font17">HB</span><span class="font6">5相同，都为13阶滤波器，根据工作模式决定是 否使能。它们系数位宽为16位。</span></p>
+<p style="text-indent:26pt;padding:20pt 0pt 20pt 0pt;"><span class="font17" style="font-weight:bold;">2.3.2</span><span class="font6">信号速率变化</span></p>
+<p style="text-indent:38pt;padding:20pt 0pt 0pt 0pt;"><a name="bookmark32"></a><span class="font6">输出信号的速率取决于滤波器使能的半带抽取滤波器组数，表<a href="#bookmark32">2-6</a>为抽取组 数的不同选择与对应的抽取速率和输出信号的速率。</span></p>
+<table>
+<tr><td>
+<p><span class="font6">表</span><span class="font17">2-6</span><span class="font6">抽取率与输出信号速率</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">抽取滤波器选择</span></p></td><td style="vertical-align:middle;">
+<p><span class="font17">HB</span><span class="font6">1</span></p></td><td style="vertical-align:middle;">
+<p><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2</span></p></td><td style="vertical-align:middle;">
+<p><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2,</span><span class="font17">HB</span><span class="font6">3</span></p></td><td style="vertical-align:middle;">
+<p><span class="font17">HB</span><span class="font6">1,</span><span class="font17">HB</span><span class="font6">2,</span><span class="font17">HB</span><span class="font6">3,</span><span class="font17">HB</span><span class="font6">4</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font17">ALL</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font6">抽取率</span></p></td><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 14pt;"><span class="font6">2</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">4</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">8</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:center;"><span class="font6">16</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">32</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 14pt;"><span class="font6">输出信号速率</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 14pt;"><span class="font16" style="font-style:italic;">Is</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0.5</span><span class="font17">fs</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font6">0.125</span><span class="font17">fs</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;"><span class="font6">0.0625</span><span class="font17">f<sub>s</sub></span></p></td><td style="vertical-align:middle;">
+<p><span class="font6">0.03125</span><span class="font17">f<sub>s</sub></span></p></td></tr>
+</table></td></tr>
+</table>
+<p style="text-indent:25pt;padding:0pt 0pt 50pt 0pt;"><span class="font17" style="font-weight:bold;">2.3.3</span><span class="font6">模块接口与时序</span></p>
+<p style="text-indent:37pt;padding:50pt 0pt 31pt 0pt;"><span class="font17">FS</span><span class="font6">模块接收来自</span><span class="font17">FTS</span><span class="font6">的</span><span class="font17">36</span><span class="font6">位复数信号（实部虚部各</span><span class="font17">18</span><span class="font6">位)，并输出</span><span class="font17">36</span><span class="font6">位 复数信号给下一级。对于各半带滤波抽取的输出，均为</span><span class="font17">36</span><span class="font6">位的复数信号。</span></p>
+<p style="text-indent:25pt;padding:31pt 0pt 31pt 0pt;"><span class="font17">FS</span><span class="font6">模块的时序的关键在于五个半带滤波抽取模块，如图</span><span class="font17"><a href="#bookmark17">2-11</span><span class="font6"></a>所示为任意一个 抽取滤波模块的时序图（五个模块的时序相同），下面进行介绍：</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:31pt 27pt 31pt 0pt;"><span class="font6">(</span><span class="font17">1</span><span class="font6">) </span><span class="font17">FIR</span><span class="font6">接收到上一级滤波抽取模块的</span><span class="font17">INPUT_VALID_FIR</span><span class="font6">信号后（</span><span class="font17">HB1</span><span class="font6">接 收</span><span class="font17">FTS</span><span class="font6">的</span><span class="font17">valid</span><span class="font6">信号），一般经过</span><span class="font17">2N</span><span class="font6">个周期输出滤波计算后的信号，同时</span><span class="font17">OUT-PUT VALID FIR</span><span class="font6">也拉高。</span><span class="font17">N</span><span class="font6">为滤波器系数的个数。</span></p>
+<p style="text-indent:25pt;padding:31pt 0pt 0pt 0pt;"><span class="font6">(</span><span class="font17">2</span><span class="font6">)</span><span class="font17">Decimation </span><span class="font6">接收到 </span><span class="font17">FIR</span><span class="font6">发送的</span><span class="font17">OUTPUT—VALm—FIRONPUT—VALID—DEC</span><span class="font6">)</span></p>
+<p style="padding:0pt 0pt 31pt 0pt;"><span class="font6">信号后，在两个周期后输出信号二倍抽取的结果，并同时拉高</span><span class="font17">OUTPUT—VALID—DEC, </span><span class="font6">该信号也作为下一级滤波抽取模块的</span><span class="font17">INPUT VALID FIR</span><span class="font6">信号。</span></p>
+<p style="text-indent:25pt;padding:31pt 0pt 140pt 0pt;"><a name="bookmark17"></a><span class="font6">(</span><span class="font17">3</span><span class="font6">) </span><span class="font17">Decimation</span><span class="font6">同时将</span><span class="font17">CLK</span><span class="font6">信号的频率除以二输出，作为下一级滤波器的输 入时钟。特别的，第一级滤波器的输入时钟为系统时钟。</span></p>
+<table>
+<tr><td><img src="main-14.jpg" style="width:425pt;height:114pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">图</span><span class="font17">2-11 FS</span><span class="font6">时序</span></p></td></tr>
+</table><h4 style="padding:0pt 0pt 26pt 0pt;"><a name="bookmark33"></a><span class="font9"><a name="bookmark34"></a><a name="bookmark35"></a>2.4増益补偿模块设计方案</span></h4>
+<table>
+<tr><td><img src="main-15.jpg" style="width:425pt;height:281pt;"/></td></tr>
+<tr><td>
+<p><span class="font6">图</span><span class="font17">2-12 GS</span><span class="font6">总体结构</span></p></td></tr>
+</table>
+<p style="text-align:justify;text-indent:38pt;padding:26pt 28pt 0pt 0pt;"><span class="font6">如图<a href="#bookmark34">2-12</a>,</span><span class="font17">GS</span><span class="font6">模块主要用于补偿在变频处理后信号损失的幅度值，其本质是 一个二倍乘法器。控制寄存器（</span><span class="font17">CRFGS</span><span class="font6">的</span><span class="font17">GS</span><span class="font6">位）控制是否使能二倍乘法，以决&nbsp;定进行6</span><span class="font17">dB</span><span class="font6">或</span><span class="font17">OdB</span><span class="font6">的幅度补偿。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:0pt 28pt 0pt 0pt;"><span class="font6">一般的对于实数信号输入，因为负数频域的损失，需要进行6</span><span class="font17">dB</span><span class="font6">的幅度补偿</span><span class="font6" style="color:#C6C6C6;">; </span><span class="font6">而对于复数信号输入，一般选择0</span><span class="font17">dB</span><span class="font6">补偿，即不进行补偿操作。在幅度补偿之后</span><span class="font6" style="color:#C6C6C6;">，&nbsp;</span><span class="font17">GS</span><span class="font6">模块同时完成信号的截位操作，输出规定位宽下的信号。</span></p><h3 style="text-align:center;padding:0pt 0pt 23pt 26pt;"><a name="bookmark36"></a><span class="font10"><a name="bookmark37"></a>第3章基于</span><span class="font20">MATLAB</span><span class="font10">的数字下变频设计与仿真</span></h3>
+<p style="text-align:justify;text-indent:26pt;padding:23pt 28pt 0pt 0pt;"><span class="font17">MATLAB</span><span class="font6">是一款强大的数学软件，也是广泛用于工程仿真的工具。在数字信 号处理领域，</span><span class="font17">MATLAB</span><span class="font6">可以帮助我们更好地进行仿真和分析，通过模拟出实际系&nbsp;统的行为来提高工作的效率和精度，从而帮助我们优化设计和减少开发成本。<sup>[<a href="#bookmark38">1</a>]</sup></span></p>
+<p style="text-align:justify;text-indent:26pt;padding:0pt 28pt 23pt 0pt;"><span class="font6">本章将介绍如何使用</span><span class="font17">MATLAB</span><span class="font6"> </span><span class="font17">R</span><span class="font6">2022</span><span class="font17">b</span><span class="font6">进行数字下变频器的仿真，包括输入 仿真、变频模块仿真、滤波模块仿真和增益截位仿真。通过这些仿真，我们可以&nbsp;更好地了解系统的性能和特性，从而得出最优解决方案。同时</span><span class="font17">MATLAB</span><span class="font6">的仿真是&nbsp;</span><span class="font17">RTL</span><span class="font6">仿真前的预仿真，在</span><span class="font17">MATLAB</span><span class="font6">仿真中会模拟具体的数字电路结构来使仿真更&nbsp;贴近实际情况。</span></p><h4 style="padding:23pt 0pt 23pt 0pt;"><a name="bookmark39"></a><span class="font9"><a name="bookmark40"></a>3.1基础理论与仿真工具</span></h4>
+<p style="text-indent:38pt;padding:23pt 0pt 23pt 0pt;"><a name="bookmark41"></a><span class="font6">在介绍具体模块的仿真之前，首先在本节对几个重要的基础理论进行简单 的介绍，并介绍它们在</span><span class="font17">MATLAB</span><span class="font6">仿真中的实现方法。</span></p><h5 style="text-align:justify;text-indent:26pt;padding:23pt 0pt 23pt 0pt;"><a name="bookmark42"></a><span class="font6">3.1.1快速傅里叶变换（</span><span class="font17" style="font-weight:bold;">FFT</span><span class="font6">)</span></h5>
+<p style="text-indent:38pt;padding:23pt 0pt 0pt 0pt;"><span class="font6">快速傅里叶变换（</span><span class="font17">Fast</span><span class="font6"> </span><span class="font17">Fourier</span><span class="font6"> </span><span class="font17">Transform</span><span class="font6">，</span><span class="font17">FFT</span><span class="font6">)是一种基于离散傅里叶变 换（</span><span class="font17">Discrete</span><span class="font6"> </span><span class="font17">Fourier</span><span class="font6"> </span><span class="font17">Transform</span><span class="font6">，</span><span class="font17">DFT</span><span class="font6">)的快速算法，本文米用基-2算法，也称为库</span></p>
+<p><span class="font6">利-图基算法，该算法要求输入序列的长度为2的幂次方，具体的算法过程这里不 进行介绍。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:0pt 28pt 0pt 0pt;"><span class="font6">因为后续要基于</span><span class="font17">FFT</span><span class="font6">变换后的频谱进行相关的计算分析，所以我们期望变换 后的频谱能更真实准确地反应信号的频域特性，也就是尽量避免非理想情况的发&nbsp;生。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:0pt 28pt 0pt 0pt;"><span class="font17">FFT</span><span class="font6">假设获取的数据是一个周期信号的片段，即将有限长信号进行周期拓展， 然后再进行周期信号的傅里叶谱计算。相当于</span><span class="font17">FFT</span><span class="font6">对原始的无线长信号进行了截&nbsp;断，当截断的信号不是目标信号的一个完整周期时，</span><span class="font17">FFT</span><span class="font6">变换后，其频谱在真实频&nbsp;点周围存在大量的杂散成分，且频点最大值有一定幅度的下降（如图<a href="#bookmark43">3-1</a>)，这就是&nbsp;典型的频谱泄露，是一种我们想要避免的非理想情况，在本次仿真中通过设置调&nbsp;整仿真参数，来获得目标信号完整周期倍数的信号。</span></p>
+<p style="text-align:justify;text-indent:26pt;"><span class="font6">截取信号带来的非理想效应除了频谱泄露外，还会带来信号频谱的离散化，而</span></p>
+<p style="text-align:justify;padding:0pt 28pt 0pt 0pt;"><a name="bookmark43"></a><span class="font6">频谱对应的步长是采样频率除以采样点数，也就是说</span><span class="font17">FFT</span><span class="font6">的频谱仅表示这些特殊 离散频率上信号在时域上的幅值（能量），这同样需要保证仿真信号能够时刻处于&nbsp;这些特殊的频率值上。</span></p><img src="main-16.jpg" style="width:427pt;height:37pt;"/><img src="main-17.jpg" style="width:427pt;height:104pt;"/>
+<table>
+<tr><td><img src="main-18.jpg" style="width:382pt;height:16pt;"/></td></tr>
+<tr><td>
+<p style="text-align:justify;padding:0pt 0pt 9pt 0pt;"><span class="font6">(</span><span class="font17">a</span><span class="font6">)发生非理想效应的</span><span class="font17">FFT</span><span class="font6"> &nbsp;&nbsp;&nbsp;(</span><span class="font17">b</span><span class="font6">)消除非理想效应后的</span><span class="font17">FFT</span></p>
+<p style="text-align:center;padding:9pt 0pt 0pt 3pt;"><span class="font6">图</span><span class="font17">3-1 FFT</span><span class="font6">对比</span></p></td></tr>
+</table><h5 style="text-align:justify;text-indent:27pt;padding:33pt 0pt 19pt 0pt;"><a name="bookmark44"></a><span class="font6">3.1.2无杂散动态范围（</span><span class="font17" style="font-weight:bold;">SFDR</span><span class="font6">)与信噪失真比（</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">)</span></h5>
+<p style="text-align:justify;text-indent:38pt;padding:19pt 28pt 24pt 0pt;"><span class="font6">无杂散动态范围（</span><span class="font17">SFDR</span><span class="font6">)指基本正弦波信号功率与从</span><span class="font17">OHz</span><span class="font6">(</span><span class="font17">DC</span><span class="font6">)到二分之一 采样速率（如</span><span class="font17">fs</span><span class="font6">/2)范围内测得的输出峰值杂散信号功率之比。而信噪失真比（也称&nbsp;为</span><span class="font17">SINAD</span><span class="font6">)指输入正弦波时，信号功率与（</span><span class="font17">a</span><span class="font6">)总噪声功率和(</span><span class="font17">b</span><span class="font6">)输出端（不含</span><span class="font17">DC</span><span class="font6">)&nbsp;的所有其他频率分量功率加上所有其他谐波分量功率的和的比值。它们的表达式&nbsp;如下所示：</span></p>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 18pt;"><a name="bookmark45"></a><span class="font16" style="font-style:italic;">SFDR</span><span class="font6" style="font-style:italic;">(</span><span class="font16" style="font-style:italic;">dB</span><span class="font6">) = 10</span><span class="font17" style="font-weight:bold;">lg</span><span class="font16" style="font-style:italic;">(<sup>Ppunfamen</span><span class="font16" style="font-style:italic;color:#B3B3B3;">t</span><span class="font16" style="font-style:italic;">a</span><span class="font6" style="color:#B3B3B3;">l</span><span class="font6"></sup>)</span></p>
+<p style="padding:0pt 0pt 0pt 125pt;"><span class="font16" style="font-style:italic;"><sup>P</sup>LargestSpur</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:right;"><span class="font6">(3.1)</span></p></td></tr>
+<tr><td style="vertical-align:bottom;">
+<p style="text-align:justify;"><a name="bookmark46"></a><span class="font16" style="font-style:italic;">SNDR</span><span class="font6" style="font-style:italic;">(</span><span class="font16" style="font-style:italic;">dB</span><span class="font6">) = 10</span><span class="font17" style="font-weight:bold;">lg</span><span class="font6">( &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;"><sup>Psi</span><span class="font6" style="font-style:italic;color:#C6C6C6;">9</sup>^</span><span class="font16" style="font-style:italic;"><sup>al</span><span class="font6"></sup>&nbsp;&nbsp;&nbsp;&nbsp;)</span></p>
+<p style="text-align:right;padding:0pt 47pt 0pt 0pt;"><span class="font16" style="font-style:italic;"><sup>P</sup>Noise</span><span class="font6" style="font-style:italic;"> + </span><span class="font16" style="font-style:italic;"><sup>P</sup>Distortion</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:right;"><span class="font6">(3.2)</span></p></td></tr>
+</table>
+<p style="text-align:justify;text-indent:27pt;padding:10pt 28pt 19pt 0pt;"><span class="font17">SFDR</span><span class="font6">与</span><span class="font17">SNDR</span><span class="font6">是衡量信号质量的重要指标，它们可以表征各个模块对于杂 散信号与噪声信号的抑制能力，在仿真与测试过程中实时反映了各模块参数调整&nbsp;后的模块性能变化。在</span><span class="font17">MATLAB</span><span class="font6">仿真中，可以根据式（<a href="#bookmark45">3.1</a>) (<a href="#bookmark46">3.2</a>)通过使用</span><span class="font17">FFT&nbsp;</span><span class="font6">生成的功率谱来计算</span><span class="font17">SFDR</span><span class="font6">与</span><span class="font17">SNDR</span><span class="font6">的具体值：根据</span><span class="font17">FFT</span><span class="font6">生成功率谱的离散特性，&nbsp;</span><span class="font17">MATLAB</span><span class="font6">可以通过矩阵操作计算，等效的表达式如下</span><span class="font16" style="font-style:italic;">(Pmax</span><span class="font6">为除了 </span><span class="font16" style="font-style:italic;">Psignal</span><span class="font6">外的最&nbsp;大值)：</span></p>
+<p style="text-align:justify;padding:19pt 0pt 0pt 143pt;"><span class="font16" style="font-style:italic;">SFDR</span><span class="font6" style="font-style:italic;">(</span><span class="font16" style="font-style:italic;">dB</span><span class="font6" style="font-style:italic;">) = </span><span class="font16" style="font-style:italic;">I</span><span class="font6" style="font-style:italic;">0</span><span class="font16" style="font-style:italic;">lg(<sup>Psgnai</span><span class="font6"></sup>) &nbsp;&nbsp;&nbsp;(3.3)</span></p>
+<p style="padding:0pt 0pt 0pt 252pt;"><span class="font16" style="font-style:italic;"><sup>P</sup>max</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 122pt;"><span class="font18" style="font-style:italic;">SNDR</span><span class="font6" style="font-style:italic;">(</span><span class="font18" style="font-style:italic;">dB</span><span class="font6" style="font-style:italic;">) =</span><span class="font6"> 10</span><span class="font17">lg</span><span class="font6">(</span><span class="font6" style="font-style:italic;text-decoration:line-through;">:拘</span><span class="font6" style="text-decoration:line-through;">:<sup>1</span><span class="font6"></sup>—) &nbsp;&nbsp;&nbsp;(3.4)</span></p>
+<p style="padding:0pt 0pt 18pt 229pt;"><span class="font6">/ </span><span class="font16" style="font-style:italic;text-decoration:underline;">j</span><span class="font6" style="font-style:italic;"> </span><span class="font18" style="font-style:italic;"><sup>P</span><span class="font16" style="font-style:italic;"></sup>i</span><span class="font6"> — </span><span class="font18" style="font-style:italic;"><sup>P</span><span class="font6" style="font-style:italic;"></sup> </span><span class="font16" style="font-style:italic;">Signal</span></p>
+<p style="padding:18pt 0pt 26pt 26pt;"><span class="font6">在满刻度正弦波输入条件下，理论最高</span><span class="font17">SNDR</span><span class="font6">可从量化噪声推导而得：</span></p>
+<p style="text-align:justify;padding:26pt 0pt 26pt 147pt;"><a name="bookmark47"></a><span class="font18" style="font-style:italic;">SNDR</span><span class="font6" style="font-style:italic;"> =</span><span class="font6"> 6.02</span><span class="font17">N</span><span class="font6"> + 1.76</span><span class="font17">dB</span><span class="font6"> &nbsp;&nbsp;&nbsp;(3.5)</span></p>
+<p style="padding:26pt 0pt 9pt 0pt;"><span class="font6">这里</span><span class="font17">N</span><span class="font6">是理想量化位宽的位数。该公式体现的是对于理想的</span><span class="font17">N</span><span class="font6">位正弦波输入（不 考虑谐波失真），整个奈奎斯特带宽上能达到的最佳</span><span class="font17">SNDR</span><span class="font6">。</span></p>
+<p style="text-align:right;padding:9pt 28pt 0pt 0pt;"><span class="font6">在上述假定理想的情况下，认为量化噪声是数据转换器与数字下变频器的唯 一噪声源，这时候可以引入有效位数（</span><span class="font17">ENOB</span><span class="font6">)来更直观地反应数字下变频器的性</span></p>
+<p><span class="font6">能，</span><span class="font17">ENOB</span><span class="font6">与</span><span class="font17">SNDR</span><span class="font6">关系如下：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:center;"><span class="font18" style="font-style:italic;">SNDR</span><span class="font6" style="font-style:italic;"> —</span><span class="font6"> 1.76 6^2</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><a name="bookmark48"></a><span class="font18" style="font-style:italic;">ENOB</span><span class="font6" style="font-style:italic;"> =</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">(3.6)</span></p></div><br clear="all"/>
+<p style="text-align:justify;padding:0pt 0pt 29pt 0pt;"><span class="font6">可以发现式（<a href="#bookmark48">3.6</a>)其实由式（<a href="#bookmark47">3.5</a>)变化而来，</span><span class="font17">ENOB</span><span class="font6">可以认为是信号的等效位宽 长度。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:29pt 0pt 29pt 0pt;"><span class="font17" style="font-weight:bold;">3.1.3</span><span class="font6">截位</span></p>
+<p style="text-align:justify;text-indent:37pt;padding:29pt 0pt 9pt 0pt;"><span class="font6">本次数字下变频器设计的最终目标是完成</span><span class="font17">FPGA</span><span class="font6">的实现与测试，这需要对 每一个子模块的输入输出位宽有一个准确的规定，在保证性能的同时，尽可能地&nbsp;减少资源的消耗。所以，在</span><span class="font17">MATLAB</span><span class="font6">仿真中，我们同样需要完成对输出信号的位&nbsp;宽设置，即对信号进行截位处理。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:9pt 0pt 9pt 0pt;"><span class="font6">常见的截位方式有多种，本文使用舍入截位，即对数据按绝对值取四舍五入。 相较于其他方式，舍入截位不仅可以通过减少截位误差对信号幅度和相位的影响&nbsp;来提高信号的</span><span class="font17">SNDR</span><span class="font6">，还可以消除截位后信号的偏移和非对称性，避免在0频处产&nbsp;生误差尖峰。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:9pt 0pt 29pt 0pt;"><span class="font6">在</span><span class="font17">MATLAB</span><span class="font6">仿真中，系统默认使用</span><span class="font17">double</span><span class="font6">类型储存数据，对应着64位的数 据位宽，这超出了我们需要的位宽大小，因此仿真使用</span><span class="font17">round</span><span class="font6">函数模拟数字模块对&nbsp;信号的舍入截位，具体</span><span class="font17">MATLAB</span><span class="font6">操作如下(</span><span class="font17">W</span><span class="font6">为截位的位宽)：</span></p>
+<p style="text-align:justify;padding:29pt 0pt 0pt 110pt;"><span class="font18" style="font-style:italic;">Signalf<sub>ix</span><span class="font6" style="font-style:italic;"></sub> = </span><span class="font18" style="font-style:italic;">round(Signal</span><span class="font6" style="font-style:italic;"> * 2<sup>W-1</span><span class="font6"></sup> )/2<sup>W-1</sup> &nbsp;&nbsp;&nbsp;(3.7)</span></p><h4 style="padding:0pt 0pt 24pt 0pt;"><a name="bookmark49"></a><span class="font9"><a name="bookmark50"></a>3.2输入仿真</span></h4>
+<p style="text-align:justify;text-indent:38pt;padding:24pt 0pt 5pt 0pt;"><span class="font6">常规的数字下变频器输入，是</span><span class="font17" style="font-weight:bold;">ADC</span><span class="font6">将模拟信号转换后的数字信号。但在测 试仿真阶段，使用实际转换后的信号会存在例如热噪声，采样时钟抖动噪声等干&nbsp;扰噪声，这不利于测试数字模块带来的量化噪声变化，所以我们确定输入测试信&nbsp;号由</span><span class="font17" style="font-weight:bold;">MATLAB</span><span class="font6">生成，下面介绍参数设置。</span></p>
+<p style="text-align:justify;text-indent:25pt;padding:5pt 0pt 0pt 0pt;"><span class="font6">对于输入的测试信号，因为仿真本身对于</span><span class="font17" style="font-weight:bold;">SFDR</span><span class="font6">与</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">性能计算的需求，采 用正弦波实数信号进行测试。首先规定有限信号输入的点数，考虑后续进行</span><span class="font17" style="font-weight:bold;">RTL&nbsp;</span><span class="font6">仿真时采样点数的有限性且输出数据可能为输入数据32倍抽样后的结果，这里输&nbsp;入信号点数规定为4096 </span><span class="font17" style="font-weight:bold;">x</span><span class="font6"> 32个，但每次进行</span><span class="font17" style="font-weight:bold;">FFT</span><span class="font6">运算时，只取4096个点。对于&nbsp;信号的频率与采样频率，如<a href="#bookmark41">3.1.1</a>中描述，我们需要保证设定的频率可以满足4096&nbsp;个采样点能够包含</span><span class="font17" style="font-weight:bold;">N</span><span class="font6">个周期长度，</span><span class="font17" style="font-weight:bold;">N</span><span class="font6">必须是正整数，由此列出下面关系式：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">(3.8)</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">4096</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:justify;"><span class="font16" style="font-style:italic;">fs</span><span class="font6" style="font-style:italic;"> &nbsp;&nbsp;&nbsp;/</span><span class="font16" style="font-style:italic;">signal</span></p></div><br clear="all"/>
+<p style="text-align:justify;"><span class="font6">得到</span><span class="font6" style="font-style:italic;">/</span><span class="font16" style="font-style:italic;">signal</span><span class="font6" style="font-style:italic;">与</span><span class="font16" style="font-style:italic;">fs</span><span class="font6">的关系为：</span></p><div style="float:right;layout-flow:horizontal;">
+<p><span class="font6">(3.9)</span></p></div>
+<p style="text-align:justify;padding:0pt 0pt 0pt 179pt;"><span class="font16" style="font-style:italic;"><sup>f</sup>signal</span><span class="font6" style="font-style:italic;"> &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;"><sup>N</sup></span></p>
+<p style="text-align:justify;padding:0pt 0pt 13pt 188pt;"><span class="font16" style="font-style:italic;">fs</span><span class="font6"> &nbsp;&nbsp;&nbsp;<sup>=</sup> 4096</span></p>
+<p style="text-align:justify;padding:13pt 0pt 0pt 0pt;"><span class="font6">不难看出，这正好满足了<a href="#bookmark41">3.1.1</a>中信号频率需处于特殊频率点的要求。在满足上述 设定基础上，我们可以大胆地设定输入信号的频率，下面给出在</span><span class="font17" style="font-weight:bold;">MATLAB</span><span class="font6">中的具&nbsp;体设置：</span></p>
+<p style="padding:0pt 0pt 0pt 230pt;"><span class="font17" style="font-weight:bold;">Ni</span><span class="font6"> + </span><span class="font16" style="font-style:italic;">N</span><span class="font6" style="font-style:italic;"><sub>2</sub></span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 135pt;"><span class="font16" style="font-style:italic;">INPUT</span><span class="font6" style="font-style:italic;"> = </span><span class="font16" style="font-style:italic;">sin</span><span class="font6" style="font-style:italic;">(2</span><span class="font16" style="font-style:italic;">n</span><span class="font6"> , &nbsp;&nbsp;&nbsp;<sup>2</sup> </span><span class="font16" style="font-style:italic;">f<sub>s</sub>t</span><span class="font6" style="font-style:italic;">)</span><span class="font6">&nbsp;&nbsp;&nbsp;&nbsp;(3.10)</span></p>
+<p style="text-align:justify;padding:0pt 0pt 13pt 212pt;"><span class="font17" style="font-weight:bold;"><sup>v</span><span class="font6"></sup> &nbsp;&nbsp;&nbsp;4096 </span><span class="font16" style="font-style:italic;"><sup>Js</span><span class="font6" style="font-style:italic;"> 1</span><span class="font6">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font17" style="font-weight:bold;">v</span><span class="font6"> 7</span></sup></p>
+<p style="text-align:justify;padding:13pt 0pt 28pt 0pt;"><span class="font6">其中，</span><span class="font17" style="font-weight:bold;">t</span><span class="font6">为1到4096整数递增的矩阵，包含4096个元素。而</span><span class="font17" style="font-weight:bold;">Ni</span><span class="font6">代表着基频信号 频率，其值一般为0到64中的奇数，而馬代表射频载波频率，其值一般为512&nbsp;到2048中的偶数。关于奇数偶数的设置，主要是保证采样的周期与信号周期间存&nbsp;在互质关系，这样可以保证采样更好地遍历目标信号的多个值使信号的</span><span class="font17" style="font-weight:bold;">FFT</span><span class="font6">更加&nbsp;准确。</span></p><h4 style="text-align:justify;padding:28pt 0pt 23pt 0pt;"><a name="bookmark51"></a><span class="font9"><a name="bookmark52"></a>3.3变频模块仿真</span></h4>
+<p style="text-align:justify;text-indent:37pt;padding:23pt 0pt 0pt 0pt;"><span class="font6">变频模块的功能如<a href="#bookmark9">2.2</a>中描述，包含数控振荡器与混频器两个子模块，混频 器的</span><span class="font17" style="font-weight:bold;">MATLAB</span><span class="font6">仿真只需要按照功能描述进行简单的乘法与加减运算，本节主要介&nbsp;绍使用</span><span class="font17" style="font-weight:bold;">MATLAB</span><span class="font6">模拟查找表（</span><span class="font17" style="font-weight:bold;">LUT</span><span class="font6">)生成正弦波，和使用</span><span class="font17" style="font-weight:bold;">MATLAB</span><span class="font6">寻找</span><span class="font17" style="font-weight:bold;">FTS</span><span class="font6">的&nbsp;最优量化位宽。</span></p>
+<p style="padding:0pt 0pt 28pt 26pt;"><span class="font17" style="font-weight:bold;">3.3.1</span><span class="font6">数控振荡器仿真</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:28pt 0pt 0pt 0pt;"><span class="font6">数控振荡器在</span><span class="font17">RTL</span><span class="font6">设计中将采样查找表的方式生成，所以在</span><span class="font17">MATLAB</span><span class="font6">中 模拟查找表的生成方式进行预仿真，来测试这种方法的功能与性能，在<a href="#bookmark12">2.2.1</a>中我&nbsp;们提到过</span><span class="font17">FTW</span><span class="font6">与</span><span class="font17">POW</span><span class="font6">对查找表的控制方法（其余工作模式可以类比该方法)，这&nbsp;里引入一个新的概念——每周期香味增量（</span><span class="font17">PAW</span><span class="font6">)，它的值由</span><span class="font17">FTW</span><span class="font6">决定，公式如</span></p>
+<p><span class="font6">下：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:center;"><span class="font6">2</span><span class="font17">n</span><span class="font6"> - </span><span class="font18" style="font-style:italic;">FTW </span><span class="font6">2<sup>12</sup></span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><a name="bookmark53"></a><span class="font18" style="font-style:italic;">PAW</span><span class="font6" style="font-style:italic;"> =</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">(3.11)</span></p></div><br clear="all"/>
+<p style="text-align:justify;"><span class="font17">PAW</span><span class="font6">可以与</span><span class="font17">POW</span><span class="font6"> —同决定输出信号对应的相位值，由式（<a href="#bookmark53">3.11</a>)得到最小的相位 增量为</span><span class="font17">FTW</span><span class="font6">为1时，即每时钟（采样）周期2</span><span class="font17">n</span><span class="font6">/2<sup>12</sup>的相位增量，对应的信号频率&nbsp;为</span><span class="font17">fs</span><span class="font6">/2<sup>12</sup>,由此得出</span><span class="font17">LUT</span><span class="font6">的查找表内容，可使用</span><span class="font17">MATLAB</span><span class="font6">按照如下公式生成：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font17" style="font-weight:bold;">A</span></p>
+<p><span class="font6">2<sup>12</sup></span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6" style="font-style:italic;">* </span><span class="font18" style="font-style:italic;">i</span><span class="font6" style="font-style:italic;">)</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">=</span><span class="font18" style="font-style:italic;">sin</span><span class="font6" style="font-style:italic;">(2 * </span><span class="font18" style="font-style:italic;">pi</span><span class="font6" style="font-style:italic;"> *</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><a name="bookmark54"></a><span class="font18" style="font-style:italic;">LUT</span><span class="font6"> [*]</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">(3.12)</span></p></div><br clear="all"/>
+<p style="text-align:justify;padding:0pt 0pt 28pt 0pt;"><span class="font6">其中</span><span class="font17">i</span><span class="font6">可认为是寻址</span><span class="font17">LUT</span><span class="font6">的地址，生成的</span><span class="font17">LUT</span><span class="font6">应包含2<sup>12</sup>个数据，也就是一个完 整周期，具体寻址的地址计算方法见式（<a href="#bookmark13">2.3</a>)。需要注意在变频模块中有两个数控&nbsp;振荡器，另一个由</span><span class="font17">cos</span><span class="font6">函数生成查找表，原理同理式（<a href="#bookmark54">3.12</a>)。在</span><span class="font17">MATLAB</span><span class="font6">仿真中，&nbsp;采用</span><span class="font17">for</span><span class="font6">循环计算地址并寻址生成的</span><span class="font17">LUT</span><span class="font6">。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:28pt 0pt 28pt 0pt;"><span class="font17" style="font-weight:bold;">3.3.2</span><span class="font6">混频器位宽优化</span></p>
+<p style="text-align:justify;text-indent:38pt;padding:28pt 0pt 8pt 0pt;"><span class="font6">在<a href="#bookmark5">2.1.1</a>中我们介绍了确定的各模块的量化位宽，输入的14位位宽与</span><span class="font17">NCO </span><span class="font6">输出的12位位宽由数字下变频器的初始条件约束，而混频与滤波模块的位宽应根&nbsp;据具体性能与资源进行调整。</span><span class="font17">MATLAB</span><span class="font6">仿真在模拟混频器混频的同时，可以很方&nbsp;便地动态调整混频输出的量化位宽，可以通过</span><span class="font17">for</span><span class="font6">循环对比不同位宽下性能的变&nbsp;化。</span></p>
+<p style="text-align:justify;text-indent:26pt;padding:8pt 0pt 0pt 0pt;"><span class="font6">我们将混频模块的输出位宽初始值设定为14位，再循环逐次增加到30位，观 察最终的</span><span class="font17">DDC</span><span class="font6">输出的</span><span class="font17">SNDR</span><span class="font6">如图<a href="#bookmark55">3-2</a>。可以看到在量化位宽为18位之前，位宽的&nbsp;提升对</span><span class="font17">SNDR</span><span class="font6">的提升明显，而之后曲线就逐渐平缓，说明位宽不再是</span><span class="font17">SNDR</span><span class="font6">主要&nbsp;影响因素，可以认为此时再提高位宽会消耗更多的无效资源。由此，我们设定变&nbsp;频模块的输出位宽为18位，而对于滤波模块的每一级滤波器，最理想的输入输出&nbsp;位宽应保持与变频模块输出位宽一致，以避免位宽的浪费，所以同样设置滤波模&nbsp;块的输入输出位宽均为18位。</span></p><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td>
+<span style="layout-flow:vertical-ideographic;">
+<p style="padding:0pt 0pt 3pt 0pt;"><span class="font2" style="color:#686868;">903886843280737674</span></p>
+<p style="padding:3pt 0pt 0pt 62pt;"><span class="font3" style="color:#2B2B2B;">ccaNS</span></p></span></td><td><img src="main-19.jpg" style="width:163pt;height:112pt;"/></td></tr>
+<tr><td colspan="2">
+<p style="text-align:center;padding:0pt 7pt 15pt 0pt;"><span class="font12" style="color:#383838;">Bit Width</span></p>
+<p style="text-align:center;padding:15pt 0pt 0pt 0pt;"><span class="font6">图</span><span class="font17">3-2 DDC</span><span class="font6">输出的</span><span class="font17">SNDR</span><span class="font6">与混频器位宽的关系</span></p></td></tr>
+</table></div><br clear="all"/>
+<p style="padding:0pt 0pt 21pt 0pt;"><a name="bookmark56"></a><span class="font9">3.4滤波模块仿真</span></p>
+<p style="text-align:justify;text-indent:36pt;padding:21pt 0pt 21pt 0pt;"><a name="bookmark57"></a><span class="font6">滤波模块的功能如<a href="#bookmark19">2.3</a>中描述，包含五个可系统控制使能的半带滤波抽取模 块。该模块不仅负责信号的降采样，还可以大大提升信号的性能。本节主要介绍&nbsp;通过</span><span class="font17">MATLAB</span><span class="font6">仿真确定正确的滤波器参数，保证降采样的同时尽量提高</span><span class="font17">DDC</span><span class="font6">性&nbsp;能并降低资源消耗，之后依照仿真结果进行简单的理论分析与验证。</span></p>
+<p style="text-indent:24pt;padding:21pt 0pt 21pt 0pt;"><span class="font17" style="font-weight:bold;">3.4.1</span><span class="font6">滤波器性能需求</span></p>
+<p style="text-align:justify;text-indent:36pt;padding:21pt 0pt 0pt 0pt;"><span class="font6">对于数字滤波器来说，由于滤波器系数的位宽有限，量化误差不可避免地 会导致通带和阻带的波纹。这就意味着滤波器的性能会偏离理想情况。在本次数&nbsp;字下变频设计中，我们主要需要滤除变频模块产生的射频杂波，并保证基频信号&nbsp;不受损失。因此，我们期望通带的衰减小于-</span><span class="font17">O.OOldB</span><span class="font6">，阻带的衰减大于100</span><span class="font17">dB</span><span class="font6">。然&nbsp;而，在级联的五级半带滤波抽取模块中，并不可能让所有的滤波器都达到这样的&nbsp;要求。那样会消耗过多的硬件资源和时序开销。所以我们需要合理地设计每个滤&nbsp;波器的参数。为此，我们首先给出本次设计中有效通带和有效阻带的定义：</span></p>
+<p style="text-indent:24pt;"><span class="font6">有效通带：指通带衰减小于-</span><span class="font17">O.OOldB</span><span class="font6">的频率范围。在有效通带内，基频信号可 以认为没有受到影响。由于数字滤波器并非理想，有效通带往往小于</span><span class="font16" style="font-style:italic;">fs</span><span class="font6" style="font-style:italic;">/4。</span></p>
+<p style="text-indent:24pt;"><span class="font6">有效阻带：指阻带衰减大于100</span><span class="font17">dB</span><span class="font6">的频率范围。在有效阻带内，射频杂波信 号可以认为被降低到基本噪声水平。同样地，有效阻带也小于</span><span class="font17" style="font-weight:bold;">fs</span><span class="font6">/4。</span></p>
+<p style="text-indent:24pt;"><span class="font6">一般来说，随着滤波器系数的个数和位宽减少，有效通带和有效阻带的宽度 也会相应缩小。</span></p>
+<p style="text-indent:24pt;"><span class="font6">为了分析滤波器参数设计的需求，我们以一个两级半带滤波抽取级联为例。 图<a href="#bookmark58">3-3</a>显示了信号频谱经过两级抽取后的变化。每次抽取都会降低奈奎斯特频率，</span></p>
+<p style="text-align:justify;padding:0pt 0pt 22pt 0pt;"><a name="bookmark59"></a><span class="font6">导致奈奎斯特频率外的原始信号频率发生混叠；例如，在第一次抽取滤波后</span><span class="font6" style="color:#C6C6C6;">，</span><span class="font6">区域 三、四中的信号经过</span><span class="font17">HB</span><span class="font6">2滤波器的阻带处理后，分别混叠到区域二、一中。两级&nbsp;串联后的混叠情况如右侧图所示。可以看出，初始信号所在的频率区域不同，经过&nbsp;的滤波操作也不同。区域四只受到</span><span class="font17">HB</span><span class="font6">2滤波器的阻带处理，因此区域四需要位于&nbsp;</span><span class="font17">HB</span><span class="font6">2滤波器的有效阻带内，即整个阻带的2 - 1部分；同理，区域二只受到</span><span class="font17">HB</span><span class="font6">1&nbsp;滤波器的阻带处理，所以</span><span class="font17">HB</span><span class="font6">1滤波器的有效阻带范围应接近整个阻带。由此可见，&nbsp;对于整个滤波模块来说，每一级滤波器的有效阻带范围有所差异。考虑五级半带&nbsp;滤波抽取模块均使能的情况,表<a href="#bookmark59">3-1</a>列出了每一级滤波器具体的性能需求。</span></p>
+<table>
+<tr><td>
+<p><span class="font6">表</span><span class="font17">3-1</span><span class="font6">各级滤波器性能要求</span></p></td></tr>
+<tr><td>
+<table border="1">
+<tr><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font6">滤波器名称</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 12pt;"><span class="font17">HB</span><span class="font6">5</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 12pt;"><span class="font17">HB</span><span class="font6">4</span></p></td><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 15pt;"><span class="font17">HB</span><span class="font6">3</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 1pt;"><span class="font17">HB</span><span class="font6">2</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:center;padding:0pt 0pt 0pt 2pt;"><span class="font17">HB</span><span class="font6">1</span></p></td></tr>
+<tr><td style="vertical-align:bottom;">
+<p style="padding:0pt 0pt 0pt 8pt;"><span class="font6">有效阻带范围（正频域）</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 9pt;"><span class="font16" style="font-style:italic;">f</span><span class="font12" style="font-style:italic;">s &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;">f</span><span class="font12" style="font-style:italic;">s</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 9pt;"><span class="font6">4 &nbsp;&nbsp;&nbsp;2</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 8pt;"><span class="font6">3</span><span class="font17">f</span><span class="font0">s &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;">f</span><span class="font12" style="font-style:italic;">s</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 12pt;"><span class="font6">8 &nbsp;&nbsp;&nbsp;2</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 10pt;"><span class="font16" style="font-style:italic;">f</span><span class="font6" style="font-style:italic;"> &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;">f</span><span class="font12" style="font-style:italic;">s</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 10pt;"><span class="font6">16 &nbsp;&nbsp;&nbsp;2</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 8pt;"><span class="font6">15</span><span class="font17">f</span><span class="font0">s &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;">f</span><span class="font12" style="font-style:italic;">s</span></p>
+<p style="text-align:right;padding:0pt 8pt 0pt 0pt;"><span class="font6" style="font-style:italic;"><sup>-</span><span class="font6"></sup> </span><span class="font17">T</span></p></td><td style="vertical-align:bottom;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 8pt;"><span class="font6">31</span><span class="font17">f</span><span class="font0">s &nbsp;&nbsp;&nbsp;</span><span class="font16" style="font-style:italic;">f</span><span class="font12" style="font-style:italic;">s</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 13pt;"><span class="font6">64 &nbsp;&nbsp;&nbsp;2</span></p></td></tr>
+<tr><td style="vertical-align:middle;">
+<p style="padding:0pt 0pt 0pt 8pt;"><a name="bookmark58"></a><span class="font6">有效通带范围（正频域）</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 9pt;"><span class="font6" style="font-style:italic;">0-</span><span class="font16" style="font-style:italic;">f</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 12pt;"><span class="font6">0 _ </span><span class="font17" style="font-weight:bold;">A</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 12pt;"><span class="font17"><sup>U</span><span class="font6"></sup> 8</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:justify;padding:0pt 10pt 0pt 10pt;"><span class="font6" style="font-style:italic;">0- </span><span class="font16" style="font-style:italic;">i</span><span class="font12" style="font-style:italic;">s </span><span class="font17"><sup>u</span><span class="font6"></sup> 16</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 13pt;"><span class="font6">0 - </span><span class="font17">A</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 13pt;"><span class="font17"><sup>U</span><span class="font6"></sup> &nbsp;&nbsp;&nbsp;32</span></p></td><td style="vertical-align:middle;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 13pt;"><span class="font6">0 - </span><span class="font17">A</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 13pt;"><span class="font17"><sup>U</span><span class="font6"></sup> &nbsp;&nbsp;&nbsp;64</span></p></td></tr>
+</table></td></tr>
+</table>
+<table>
+<tr><td><img src="main-20.jpg" style="width:425pt;height:187pt;"/></td></tr>
+<tr><td>
+<p style="padding:0pt 0pt 0pt 25pt;"><span class="font6">3.4.2 </span><span class="font17" style="font-weight:bold;">filterDesigner</span><span class="font6">工具设置滤波器</span></p></td></tr>
+</table>
+<p style="text-align:justify;text-indent:38pt;padding:22pt 0pt 0pt 0pt;"><span class="font6">为了满足<a href="#bookmark57">3.4.1</a>中对各级滤波器的性能需求，本文采用</span><span class="font17">MATLAB</span><span class="font6">的</span><span class="font17">filterDe</span><span class="font6">-</span><span class="font17">signer</span><span class="font6"> 工具设计滤波器.如图<a href="#bookmark60">3-4</a>所示，本文设计选择</span><span class="font17">FIR</span><span class="font6">类型的半带滤波器，指定 滤波器阶数和阻带衰减参数，然后选择窗函数法。在</span><span class="font17">filterdesigner</span><span class="font6">界面中，可以查&nbsp;看并根据滤波器的幅频响应、相频响应和零极点图等特性进行优化，多次调整参&nbsp;数，找到满足表<a href="#bookmark59">3-1</a>的滤波器参数，导出后在</span><span class="font17">MATLAB</span><span class="font6">中进行进一步的分析和使&nbsp;用。设计完成后的滤波器参数见<a href="#bookmark22">2.3.1</a>。</span></p><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td>
+<p><a name="bookmark60"></a><span class="font4" style="color:#08078B;">轱枸：</span><span class="font4">白接型</span><span class="font13">FIR </span><span class="font4" style="color:#08078B;">阶： </span><span class="font4">19&nbsp;</span><span class="font4" style="color:#08078B;">均</span><span class="font4" style="color:#040339;">定：是&nbsp;</span><span class="font4" style="color:#08078B;">來涣：</span><span class="font4">设</span><span class="font13">if</span><span class="font4">(蛍化〕</span></p></td><td><img src="main-21.jpg" style="width:310pt;height:83pt;"/></td></tr>
+</table></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;"><img src="main-22.jpg" style="width:44pt;height:111pt;"/></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td>
+<p><span class="font14" style="color:#686868;">-100</span></p></td><td><img src="main-23.jpg" style="width:230pt;height:93pt;"/></td></tr>
+</table></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<table>
+<tr><td><img src="main-24.jpg" style="width:425pt;height:169pt;"/></td></tr>
+<tr><td>
+<p style="text-align:center;padding:0pt 1pt 0pt 0pt;"><span class="font6">图</span><span class="font17">3-4 filterdesigner </span><span class="font6">界面</span></p></td></tr>
+</table></div><br clear="all"/><h5 style="padding:0pt 0pt 20pt 24pt;"><a name="bookmark61"></a><span class="font17" style="font-weight:bold;"><a name="bookmark62"></a>3.4.3</span><span class="font6">滤波模块性能理论分析与验证</span></h5>
+<p style="text-align:justify;text-indent:36pt;padding:20pt 0pt 0pt 0pt;"><span class="font17" style="font-weight:bold;">FS</span><span class="font6">模块不仅可以滤除变频模块产生的射频杂波，还可以在降低信号采样率 的同时提高输出信号的</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">性能。首先理论分析半带滤波抽取对</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">的影响:&nbsp;抽取本身不影响</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font7">，</span><span class="font6">而对于接近理想的半带滤波</span><span class="font7">，</span><span class="font6">通带内噪声信号能量不发生&nbsp;变化，而阻带内噪声能量衰减至接近零，半带滤波器的通带频率</span><span class="font17" style="font-weight:bold;">BW</span><span class="font6"> = </span><span class="font17" style="font-weight:bold;">fs</span><span class="font6">/4</span><span class="font8" style="font-weight:bold;">。</span><span class="font17" style="font-weight:bold;">SDNR&nbsp;</span><span class="font6">变化如下公式：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font16" style="font-style:italic;">Psignal</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:justify;"><span class="font16" style="font-style:italic;">I</span><span class="font6" style="font-style:italic;">0</span><span class="font16" style="font-style:italic;">log</span><span class="font6" style="font-style:italic;">(</span><span class="font6"> &nbsp;&nbsp;&nbsp;) = </span><span class="font16" style="font-style:italic;">I</span><span class="font6" style="font-style:italic;">0</span><span class="font16" style="font-style:italic;">log</span><span class="font6" style="font-style:italic;">(-</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6">)=</span><span class="font16" style="font-style:italic;">SNDR</span><span class="font6"> + 3.01</span><span class="font17">dB</span><span class="font6"> (3.13)</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font16" style="font-style:italic;">SNDR</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p style="padding:0pt 0pt 6pt 0pt;"><span class="font16" style="font-style:italic;">BW</span></p>
+<p style="padding:6pt 0pt 0pt 0pt;"><span class="font16" style="font-style:italic;">lS</span><span class="font6" style="font-style:italic;">/2</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font16" style="font-style:italic;"><sup>P</sup>no</span></p></div><br clear="all"/>
+<p style="text-align:justify;text-indent:25pt;"><span class="font6">上式为理想情况，需要的信号本身在通带内，能量不变；噪声则只保留通带部 分能量，噪声能量近似衰减一半。相对于变频模块输出的信号，滤波模块可以通&nbsp;过滤除量化噪声的方法提高信号的</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">性能，对于五级半带滤波抽取模块全部&nbsp;使能的情况，滤波模块最多将</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">提高约15.03</span><span class="font17" style="font-weight:bold;">dB</span><span class="font6">。</span></p>
+<p style="text-align:justify;text-indent:25pt;"><span class="font6">使用</span><span class="font17" style="font-weight:bold;">MATALB</span><span class="font6">仿真结果检验理论分析的正确性，如图<a href="#bookmark63">3-5</a>。图<a href="#bookmark63">3-5</span><span class="font17" style="font-weight:bold;">a</span><span class="font6"></a>是变频模块 输出后的</span><span class="font17" style="font-weight:bold;">FFT</span><span class="font6">与</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">性能，</span><span class="font17" style="font-weight:bold;">SNDR</span><span class="font6">计算时忽略射频杂波带来的影响；图<a href="#bookmark63">3-5</span><span class="font17" style="font-weight:bold;">b</span><span class="font6"></a>是</span></p>
+<p style="text-align:justify;"><a name="bookmark63"></a><span class="font6">经过五级半带滤波抽取后的</span><span class="font17">FFT</span><span class="font6">与</span><span class="font17">SNDR</span><span class="font6">性能。可以看到</span><span class="font17">SNDR</span><span class="font6">的提升接近理想 值，微小的误差分析应该为数字滤波器的通带和阻带波纹所致。</span></p><div style="display:inline;layout-flow:horizontal;"><img src="main-25.jpg" style="width:427pt;height:94pt;"/></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;"><img src="main-26.jpg" style="width:427pt;height:65pt;"/></div><br clear="all"/>
+<p style="text-align:justify;padding:0pt 0pt 0pt 85pt;"><span class="font6">⑷</span><span class="font17">FS</span><span class="font6">输入 &nbsp;&nbsp;&nbsp;(</span><span class="font17">b</span><span class="font6">)</span><span class="font17">FS</span><span class="font6">输出</span></p>
+<p style="text-align:center;padding:0pt 0pt 43pt 2pt;"><span class="font6">图</span><span class="font17">3-5 MATLAB</span><span class="font6">仿真中滤波前后信号</span><span class="font17">FFT</span></p><h4 style="padding:43pt 0pt 19pt 0pt;"><a name="bookmark64"></a><span class="font9"><a name="bookmark65"></a>3.5増益补偿模块仿真</span></h4>
+<p style="text-align:justify;text-indent:36pt;padding:19pt 0pt 0pt 0pt;"><span class="font6">滤波模块的功能如</span><span class="font17"><a href="#bookmark33">2.4</span><span class="font6"></a>中描述</span><span class="font8">，</span><span class="font6">对于实数输入信号</span><span class="font8">，</span><span class="font6">模块会采用</span><span class="font17">6dB</span><span class="font6">补偿，并 在补偿后进行</span><span class="font17">14</span><span class="font6">位截位。在</span><span class="font17">MATALB</span><span class="font6">仿真中使用乘法与简单的</span><span class="font17">floor</span><span class="font6">函数截位即&nbsp;可完成上述功能，这里重点分析理论的性能变化与实际验证结果。</span></p>
+<p style="padding:0pt 0pt 0pt 25pt;"><span class="font6">分析</span><span class="font17">SNDR</span><span class="font6">的变化如下：</span></p>
+<p style="padding:0pt 0pt 0pt 25pt;"><span class="font6">根据式（</span><span class="font17"><a href="#bookmark47">3.5</span><span class="font6"></a>)十四位量化信号</span><span class="font17">SNDR</span><span class="font6">如下式：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:justify;padding:0pt 0pt 0pt 12pt;"><span class="font16" style="font-style:italic;"><sup>P</sup>Signal</span><span class="font6" style="font-style:italic;">、 </span><span class="font16" style="font-style:italic;"><sup>P</sup>Noise</span><span class="font6" style="font-style:italic;">14 </span><span class="font16" style="font-style:italic;">J</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><a name="bookmark66"></a><span class="font17">SNDR14 = 10 lg</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font17">6.02 x 14+ 1.76 = 86.04dB</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font17">(3.14)</span></p></div><br clear="all"/>
+<p style="padding:0pt 0pt 0pt 25pt;"><span class="font6">十四位量化前信号：</span></p><div style="display:inline;layout-flow:horizontal;">
+<p><a name="bookmark67"></a><span class="font16" style="font-style:italic;">SNDR<sub>be</sub>fore</span><span class="font6"> </span><span class="font17">= 10 lg ^</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:justify;"><span class="font16" style="font-style:italic;"><sup>P</sup>Signal </span><span class="font17"><sup>P</sup>Noise</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font17">(3.15)</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font17">^dB</span></p></div><br clear="all"/>
+<p style="padding:0pt 0pt 11pt 25pt;"><span class="font6">带入（</span><span class="font17"><a href="#bookmark66">3.14</span><span class="font6"></a>) (</span><span class="font17"><a href="#bookmark67">3.15</span><span class="font6"></a>)式到下式可得：</span></p>
+<p style="padding:11pt 0pt 0pt 25pt;"><span class="font6">截位后信号的噪声</span><span class="font17">=</span><span class="font6">截位前信号的噪声乘二</span><span class="font17">+ 14</span><span class="font6">位的量化噪声</span></p><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font6" style="font-style:italic;"><sup>2 </span><span class="font16" style="font-style:italic;">P</sup>Signa</span><span class="font16" style="font-style:italic;color:#B3B3B3;">l</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p style="text-align:justify;"><span class="font16">) &nbsp;&nbsp;&nbsp;</span><span class="font17">86.04-^ \</span></p>
+<p style="padding:0pt 0pt 0pt 13pt;"><span class="font6">= 86.04- 10</span><span class="font17">lg </span><span class="font6">0.5 + 10</span><span class="font17">] dB (3.16)</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font16" style="font-style:italic;">SNDRafter</span><span class="font6"> </span><span class="font17">= 10 lg</span></p></div><br clear="all"/><div style="display:inline;layout-flow:horizontal;">
+<p><span class="font17"><sup>2P</sup>Noise</span><span class="font6"> + </span><span class="font17"><sup>P</sup>Noise</span><span class="font6">14</span></p></div><br clear="all"/>
+<p style="text-indent:25pt;"><span class="font6">带入</span><span class="font17"><a href="#bookmark61">3.4.3</span><span class="font6"></a>中得到的</span><span class="font17">FS</span><span class="font6">的输出值（</span><span class="font17">89.102dB</span><span class="font6">)得到理论的最终输出信号的</span><span class="font17">SNDR </span><span class="font6">为</span><span class="font17">86.066dB</span><span class="font6">。而实际增益截位后的</span><span class="font17">SNDR</span><span class="font6">如下图。</span></p>
+<p style="text-align:center;padding:0pt 3pt 0pt 0pt;"><span class="font12">FFT of DDC OUTPUT</span></p>
+<p style="text-align:justify;padding:0pt 0pt 0pt 136pt;"><span class="font12">ISFDR </span><span class="font12" style="color:#2B2B2B;">= 94.'3624dB &nbsp;&nbsp;&nbsp;'&nbsp;&nbsp;&nbsp;&nbsp;'&nbsp;&nbsp;&nbsp;&nbsp;'</span></p>
+<p style="padding:0pt 244pt 26pt 136pt;"><span class="font12" style="color:#2B2B2B;">SNDR = &amp;6.2365dB </span><span class="font12">ENOB </span><span class="font12" style="color:#2B2B2B;">= 14.0326</span></p><div style="display:inline;layout-flow:vertical-ideographic;">
+<p style="padding:0pt 0pt 6pt 0pt;"><span class="font2" style="color:#383838;">-40.60.80</span><span class="font2" style="color:#2B2B2B;">1001 </span><span class="font2" style="color:#383838;">20</span><span class="font2" style="color:#2B2B2B;">140</span></p>
+<p style="padding:6pt 0pt 0pt 10pt;"><span class="font3" style="color:#2B2B2B;">mpsdl</span></p></div><br clear="all"/>
+<p style="text-align:justify;padding:15pt 0pt 0pt 136pt;"><span class="font12" style="color:#4F4F4F;">-1.5 &nbsp;&nbsp;&nbsp;</span><span class="font12" style="color:#8D8D8D;">-1&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font12" style="color:#4F4F4F;">-0.5&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font12" style="color:#383838;">0&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font12" style="color:#686868;">0.5&nbsp;&nbsp;&nbsp;&nbsp;1&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="font12" style="color:#4F4F4F;">1.5</span></p>
+<p style="text-align:center;padding:0pt 3pt 15pt 0pt;"><span class="font12" style="color:#383838;">f (MHz)</span></p>
+<p style="text-align:center;padding:15pt 3pt 37pt 0pt;"><span class="font6">图</span><span class="font17">3-6 MATALB</span><span class="font6">仿真中増益截位后信号</span><span class="font17">FFT</span></p>
+<p style="padding:37pt 0pt 15pt 0pt;"><a name="bookmark68"></a><span class="font9">3.6 </span><span class="font19">MATLAB</span><span class="font9">仿真总结</span></p>
+<p style="text-align:justify;text-indent:36pt;padding:15pt 0pt 0pt 0pt;"><span class="font6">本章使用</span><span class="font17">MATLAB</span><span class="font6"> </span><span class="font17">R</span><span class="font6">2022</span><span class="font17">b</span><span class="font6">对数字下变频器进行了仿真，包括输入仿真、 变频模块仿真、滤波模块仿真和增益截位仿真。通过这些仿真，我们可以清楚地&nbsp;看到系统的输入输出特性、频谱分布、滤波效果和增益截位对信号的影响。通过&nbsp;</span><span class="font17">MATLAB</span><span class="font6">仿真，我们也调整了各模块的参数，使性能基本符合了数字下变频模块&nbsp;的设定要求。</span><span class="font17">MATLAB</span><span class="font6">的仿真为后续的</span><span class="font17">RTL</span><span class="font6">实现提供了指导和参考，我们将按照&nbsp;</span><span class="font17">MATLAB</span><span class="font6">的仿真结果进行</span><span class="font17">RTL</span><span class="font6">实现，以期达到最佳的设计效果。</span></p>
+<p><span class="font6">26</span></p>
+</body>
+</html>
